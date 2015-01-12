@@ -12,9 +12,11 @@ class MovingFrame(wx.Frame):
     
     def __init__(self, moving_horizontally=True, speed=20):
 
+        print 'moving frame started'
         self.speed = speed
         (width, height) = wx.DisplaySize()
-        if(moving_horizontally):
+        self.moving_horizontally = moving_horizontally
+        if(self.moving_horizontally):
             width = 6
             self.move = (2,0)
         else:
@@ -30,9 +32,9 @@ class MovingFrame(wx.Frame):
 
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.Move, self.timer)
-        self.timer.Start(self.speed)
 
     def Move(self, event):
+        print 'moving'
         pos = self.GetPosition()
         (width, height) = wx.DisplaySize()
         (x, y) = self.GetSize()
@@ -46,6 +48,7 @@ class MovingFrame(wx.Frame):
         if self.timer.IsRunning():
             self.timer.Stop()
         else:
+            print 'starting to move'
             self.timer.Start(self.speed)
 
     def CloseWindow(self):
@@ -60,7 +63,7 @@ class MovingFrame(wx.Frame):
 
     def GivePosition(self):
         pos = self.GetPosition()
-        if moving_horizontally:
+        if self.moving_horizontally:
             return pos.x
         else:
             return pos.y

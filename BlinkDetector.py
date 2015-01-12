@@ -95,13 +95,16 @@ class BlinkDetector():
               #successfully found, for use in subsequent iterations (to account
               #for small changes in light over time)
             pub.sendMessage("SwitchInput", msg="1")
+            #winsound.Beep(2500, 200)
             if self.test:
               winsound.Beep(2500, 200)
   
         if self.test:
           cv2.imshow("full image", img)
+          cv2.resizeWindow("full image", 20, 20)
           key_press = cv2.waitKey(20)
           if key_press == 27:
+            pub.sendMessage("SwitchInput", msg="0")
             self.Close()
             break
       else:
