@@ -26,6 +26,7 @@ class BlinkDetector():
       self.shut_shape = self.shut_eyes.shape
       self.open_shape = self.open_eyes.shape
       self.test = test
+      self.eyes_open_msg_sent = True
       self.init = True
 
   def RunDetect(self):
@@ -87,6 +88,7 @@ class BlinkDetector():
             else:
               blink = False
           if blink:
+            self.eyes_open_msg_sent = False
             if pos is not None:
               blink_pos = (blink_pos[0] + pos[0], blink_pos[1] + pos[1])
             blink_img = img[blink_pos[1]:blink_pos[1]+self.shut_shape[0],
@@ -97,15 +99,19 @@ class BlinkDetector():
             #EVENTUALLY - I want to save the blink_img here if eyes were
               #successfully found, for use in subsequent iterations (to account
               #for small changes in light over time)
-            pub.sendMessage("SwitchInput", msg="1")
+            pub.sendMessage("SwitchInput", msg="shut")
             if self.test:
               winsound.Beep(2500, 200)
+          elif not self.eyes_open_msg_sent:
+            #inform that the eyes are open again
+            self.eyes_open_msg_sent = True
+            pub.sendMessage("SwitchInput", msg="open")
   
         if self.test:
           cv2.imshow("full image", img)
         key_press = cv2.waitKey(20)
         if key_press == 27:
-          pub.sendMessage("SwitchInput", msg="0")
+          pub.sendMessage("SwitchInput", msg="closing")
           self.Close()
           break
       else:

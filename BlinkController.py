@@ -24,33 +24,35 @@ class BlinkControllerFrame(wx.Frame):
     self.mouse = PyMouse()
     self.watcher = BlinkDetector()
     pub.subscribe(self.SwitchInput, ("SwitchInput"))
-    self.last_detection = time.time()
+    self.blink_started = None
     self.watcher.RunDetect()
         
   def SwitchInput(self, msg):
-    if msg == "0":
+    if msg == "closing":
       #close command sent
       self.CloseWindow()
-    if msg == '1':
+    elif msg == "shut":
       #blink detected 
-      new_detection = time.time()
-      if new_detection- self.last_detection < 0.600:
-        return 0
-      else:
-        self.last_detection = new_detection
-      if self.left_to_right.IsMoving():
-        self.left_to_right.ToggleStopStart()
-        self.top_to_bottom.ToggleStopStart()
-      elif self.top_to_bottom.IsMoving():
-        self.top_to_bottom.ToggleStopStart()
-        xpos = self.left_to_right.GivePosition()
-        ypos = self.top_to_bottom.GivePosition()
-        self.left_to_right.ResetPosition()
-        self.top_to_bottom.ResetPosition()
-        self.Click(xpos, ypos)
-      else:
-        self.left_to_right.ToggleStopStart()
-        self.left_to_right.panel.SetFocus()
+      current_blink = time.time()
+      if self.blink_started is None:
+        self.blink_started = current_blink
+      elif current_blink - self.blink_started > 0.100:
+        self.blink_started = None
+        if self.left_to_right.IsMoving():
+          self.left_to_right.ToggleStopStart()
+          self.top_to_bottom.ToggleStopStart()
+        elif self.top_to_bottom.IsMoving():
+          self.top_to_bottom.ToggleStopStart()
+          xpos = self.left_to_right.GivePosition()
+          ypos = self.top_to_bottom.GivePosition()
+          self.left_to_right.ResetPosition()
+          self.top_to_bottom.ResetPosition()
+          self.Click(xpos, ypos)
+        else:
+          self.left_to_right.ToggleStopStart()
+    elif msg == "open":
+      #eyes are open
+      self.blink_started = None
 
   def Click(self, x, y):
     print 'clicking at', x, ' by ', y
