@@ -11,15 +11,6 @@ A simple frame which will coordinate between the blink detection and display
 elements to allow the user control
 """
 
-"""
-to do:
-- figure out if/when focusFrame needs to appear
-- add keyboard commands along with an output to inform the user of them
-- create a set up protocol based on the blink_detection_experiments folder
-  saving_eyes_to_file
-"""
-
-
 class BlinkControllerFrame(wx.Frame):
     
   def __init__(self, moving_horizontally=True, speed=20):
@@ -31,13 +22,12 @@ class BlinkControllerFrame(wx.Frame):
                   size=(0,0), style=
                   wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
     self.mouse = PyMouse()
-    self.watcher = BlinkDetector(True)
+    self.watcher = BlinkDetector()
     pub.subscribe(self.SwitchInput, ("SwitchInput"))
     self.last_detection = time.time()
     self.watcher.RunDetect()
         
   def SwitchInput(self, msg):
-    print 'msg is:', msg
     if msg == "0":
       #close command sent
       self.CloseWindow()
@@ -49,11 +39,9 @@ class BlinkControllerFrame(wx.Frame):
       else:
         self.last_detection = new_detection
       if self.left_to_right.IsMoving():
-        print '1'
         self.left_to_right.ToggleStopStart()
         self.top_to_bottom.ToggleStopStart()
       elif self.top_to_bottom.IsMoving():
-        print '2'
         self.top_to_bottom.ToggleStopStart()
         xpos = self.left_to_right.GivePosition()
         ypos = self.top_to_bottom.GivePosition()
@@ -61,7 +49,6 @@ class BlinkControllerFrame(wx.Frame):
         self.top_to_bottom.ResetPosition()
         self.Click(xpos, ypos)
       else:
-        print '0'
         self.left_to_right.ToggleStopStart()
         self.left_to_right.panel.SetFocus()
 
