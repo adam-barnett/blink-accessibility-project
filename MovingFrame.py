@@ -10,7 +10,7 @@ Used to specify a particular piece of the screen
 
 class MovingFrame(wx.Frame):
     
-    def __init__(self, moving_horizontally=True, speed=20):
+    def __init__(self, moving_horizontally=True, speed=1):
 
         print 'moving frame started'
         self.speed = speed
@@ -22,6 +22,7 @@ class MovingFrame(wx.Frame):
         else:
             height = 6
             self.move = (0,2)
+        self.SetSpeed()
         wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
                   size=(width, height), style=
                   wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
@@ -33,7 +34,10 @@ class MovingFrame(wx.Frame):
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.Move, self.timer)
 
-    def Move(self, event):
+    def SetSpeed(self):
+        self.move = (self.move[0] * self.speed, self.move[1]*self.speed)
+        
+    def Move(self, event):  
         print 'moving'
         pos = self.GetPosition()
         (width, height) = wx.DisplaySize()
@@ -49,7 +53,7 @@ class MovingFrame(wx.Frame):
             self.timer.Stop()
         else:
             print 'starting to move'
-            self.timer.Start(self.speed)
+            self.timer.Start(20)
 
     def CloseWindow(self):
         self.Close()  
