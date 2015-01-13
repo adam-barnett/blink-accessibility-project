@@ -22,7 +22,7 @@ class BlinkControllerFrame(wx.Frame):
                   size=(0,0), style=
                   wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
     self.mouse = PyMouse()
-    self.watcher = BlinkDetector()
+    self.watcher = BlinkDetector(wx.DisplaySize(), True)
     pub.subscribe(self.SwitchInput, ("SwitchInput"))
     self.blink_started = None
     self.watcher.RunDetect()

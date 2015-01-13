@@ -9,13 +9,14 @@ This allows basic blink detection using template matching.
 '''
 
 class BlinkDetector():
-  def __init__(self, test=False):
+  def __init__(self, (screen_width, screen_height), test=False):
     if not (os.path.isfile('eyes.xml') and os.path.isfile('open.png')
             and os.path.isfile('blink.png')):
       msg = ('Basic file needed missing, please check folder for eyes.xml, '
              'open.png and blink.png')
       pub.sendMessage('Error Message', msg=msg)
       self.init = False
+      pub.sendMessage("SwitchInput", msg="closing")
     else:
       self.eye_cascade = cv2.CascadeClassifier('eyes.xml')
       video_src = 0
@@ -26,6 +27,8 @@ class BlinkDetector():
       self.shut_shape = self.shut_eyes.shape
       self.open_shape = self.open_eyes.shape
       self.test = test
+      self.screen_width = screen_width
+      self.screen_height = screen_height
       self.eyes_open_msg_sent = True
       self.init = True
 
@@ -108,7 +111,11 @@ class BlinkDetector():
             pub.sendMessage("SwitchInput", msg="open")
   
         if self.test:
-          cv2.imshow("full image", img)
+          display_img = cv2.resize(img, (0,0), fx=0.4, fy=0.4)
+          xpos = self.screen_width - int(display_img.shape[0]*1.5)
+          ypos = self.screen_height/2  - display_img.shape[1]/2
+          cv2.imshow("full image", display_img)
+          cv2.moveWindow("full image", xpos, ypos)
         key_press = cv2.waitKey(20)
         if key_press == 27:
           pub.sendMessage("SwitchInput", msg="closing")
@@ -133,7 +140,7 @@ if __name__ == "__main__":
   def listener2(msg): print "Error:- ", msg
   pub.subscribe(listener2, 'Error Message')
 
-  tester = BlinkDetector(True)
+  tester = BlinkDetector((400,400), True)
   tester.RunDetect()
     
 
