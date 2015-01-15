@@ -2,6 +2,7 @@ import cv2
 import winsound
 import os.path
 from wx.lib.pubsub import pub
+import win32gui, win32con
 
 
 '''
@@ -104,7 +105,7 @@ class BlinkDetector():
               #for small changes in light over time)
             pub.sendMessage("SwitchInput", msg="shut")
             if self.test:
-              winsound.Beep(2500, 200)
+              winsound.Beep(2500, 100)
           elif not self.eyes_open_msg_sent:
             #inform that the eyes are open again
             self.eyes_open_msg_sent = True
@@ -116,6 +117,13 @@ class BlinkDetector():
           ypos = self.screen_height/2  - display_img.shape[1]/2
           cv2.imshow("full image", display_img)
           cv2.moveWindow("full image", xpos, ypos)
+          hwnd = win32gui.FindWindow(None, "full image")
+          if hwnd > 0:
+            active = win32gui.GetForegroundWindow()
+            if active != hwnd:
+              [left,top,right,bottom] = win32gui.GetWindowRect(hwnd)
+              win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, left,
+                                    top, right-left, bottom-top, 0)
         key_press = cv2.waitKey(20)
         if key_press == 27:
           pub.sendMessage("SwitchInput", msg="closing")
