@@ -14,8 +14,8 @@ elements to allow the user control
 class BlinkControllerFrame(wx.Frame):
     
   def __init__(self, moving_horizontally=True, speed=20):
-    self.left_to_right = MovingFrame()
-    self.top_to_bottom = MovingFrame(False)
+    self.left_to_right = MovingFrame(speed=3)
+    self.top_to_bottom = MovingFrame(False, speed=3)
     self.left_to_right.Show(True)
     self.top_to_bottom.Show(True)
     wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
@@ -31,13 +31,13 @@ class BlinkControllerFrame(wx.Frame):
     if msg == "closing":
       #close command sent
       self.CloseWindow()
-    elif msg == "shut":
+    elif msg == "shut" and self.blink_started != -1:
       #blink detected 
       current_blink = time.time()
       if self.blink_started is None:
         self.blink_started = current_blink
-      elif current_blink - self.blink_started > 0.100:
-        self.blink_started = None
+      elif current_blink - self.blink_started > 0.120:
+        self.blink_started = -1
         if self.left_to_right.IsMoving():
           self.left_to_right.ToggleStopStart()
           self.top_to_bottom.ToggleStopStart()
