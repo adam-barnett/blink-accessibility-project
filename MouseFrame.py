@@ -13,10 +13,11 @@ highlighted button when it is.
 class MouseFrame(wx.Frame):
     
     def __init__(self):
-        self.button_dict = {1:"up", 2:"down", 3:"left", 4:"right", 5:"scrl_down",
-               6:"scrl_up", 7:"left_click", 8:"dbl_left_click", 9:"right_click"}
+        self.button_dict = {0:"up", 1:"down", 2:"left", 3:"right", 4:"scrl_down",
+               5:"scrl_up", 6:"left_click", 7:"dbl_left_click", 8:"right_click", 9:"menu"}
         button_size = (50,50)
         config = (5,2)
+        self.timer_speed = 800
         (screen_w, screen_h) = wx.DisplaySize()
         this_size = (button_size[0]*config[0], button_size[1]*config[1])
         wx.Frame.__init__(self, None, 1, "title",
@@ -32,21 +33,26 @@ class MouseFrame(wx.Frame):
         self.buttons = []
         self.highlight_images = []
         self.normal_images = []
+        self.click_images = []
         x = 0
         y = 0
         for i in xrange(10):
             button_f = current_dir + "button" + str(i) + ".bmp"
-            highlight_f = current_dir + "highlight" + str(i) + ".bmp"
+            high_f = current_dir + "highlight" + str(i) + ".bmp"
             clicked_f = current_dir + "clicked" + str(i) + ".bmp"
             butt_im = wx.Image(button_f, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-            high_im = wx.Image(highlight_f, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            high_im = wx.Image(high_f, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
             click_im = wx.Image(clicked_f, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
             button = wx.BitmapButton(self.panel, id=-1, bitmap=butt_im,
                                      pos=(x*button_size[0], y*button_size[1]),
                                      size=button_size)
+            #uncomment these lines to allow interaction with a mouse for testing
+            #button.SetBitmapHover(high_im)
+            #button.SetBitmapSelected(click_im)
             self.buttons.append(button)
             self.highlight_images.append(high_im)
             self.normal_images.append(butt_im)
+            self.click_images.append(click_im)
             if(x == config[0]-1):
                 x = 0
                 y += 1
@@ -58,7 +64,7 @@ class MouseFrame(wx.Frame):
 
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.IterateThroughButtons, self.timer)
-        self.timer.Start(400)
+        self.timer.Start(self.timer_speed)
 
     def ButtonClick(self, event):
         print 'button clicked'
@@ -67,6 +73,16 @@ class MouseFrame(wx.Frame):
         self.buttons[self.cur_high].SetBitmap(self.normal_images[self.cur_high])
         self.cur_high = (self.cur_high + 1) % len(self.buttons)
         self.buttons[self.cur_high].SetBitmap(self.highlight_images[self.cur_high])
+
+    def ClickInput(self):
+        if self.timer.IsRunning():
+            self.buttons[self.cur_high].SetBitmap(self.click_images[self.cur_high])
+            if self.cur_high < 6:
+                #then this is a continuous action
+                self.timer.Stop()
+        else:
+            self.timer.Start(self.timer_speed)
+        return self.button_dict[self.cur_high]
 
     def CloseWindow(self):
         self.Close()
@@ -88,6 +104,8 @@ if __name__ == "__main__":
             if event.GetKeyCode() == wx.WXK_ESCAPE:
                 self.frame.CloseWindow()
                 self.ExitMainLoop()
+            elif event.GetKeyCode() == wx.WXK_SPACE:
+                print self.frame.ClickInput()
 
     app = MyApp(0)
     app.SetCallFilterEvent(True)
