@@ -8,53 +8,59 @@ highlighting them in order until the a click is entered, returning the
 highlighted button when it is.
 """
 
+
+
 class MouseFrame(wx.Frame):
     
     def __init__(self):
+        self.button_dict = {1:"up", 2:"down", 3:"left", 4:"right", 5:"scrl_down",
+               6:"scrl_up", 7:"left_click", 8:"dbl_left_click", 9:"right_click"}
+        button_size = (50,50)
+        config = (5,2)
         wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
-                  size=(50, 50), style=
-                  wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
-          
+                  size=(button_size[0]*config[0], button_size[1]*config[1]),
+                          style=wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
         self.panel = wx.Panel(self, size=self.GetSize())
+        current_dir = os.getcwd() + "\\buttons\\"
 
-        current_dir = os.getcwd()
+        self.buttons = []
+        self.highlight_images = []
+        self.normal_images = []
+        x = 0
+        y = 0
+        for i in xrange(10):
+            button_f = current_dir + "button" + str(i) + ".bmp"
+            highlight_f = current_dir + "highlight" + str(i) + ".bmp"
+            clicked_f = current_dir + "clicked" + str(i) + ".bmp"
+            butt_im = wx.Image(button_f, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            high_im = wx.Image(highlight_f, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            click_im = wx.Image(clicked_f, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            button = wx.BitmapButton(self.panel, id=-1, bitmap=butt_im,
+                                     pos=(x*button_size[0], y*button_size[1]),
+                                     size=button_size)
+            self.buttons.append(button)
+            self.highlight_images.append(high_im)
+            self.normal_images.append(butt_im)
+            if(x == config[0]-1):
+                x = 0
+                y += 1
+            else:
+                x += 1
 
-        button_image_file = (current_dir +
-                            "\\buttons\\button_up_no_highlight.bmp")
-        button_image_pressed_file = (current_dir +
-                                     "\\buttons\\button_up_clicked.bmp")
-        button_image_hover_file = (current_dir +
-                                   "\\buttons\\button_up_highlighted.bmp")
-        self.button_main_image = wx.Image(button_image_file,
-                                     wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        self.button_hover_image = wx.Image(button_image_hover_file,
-                                      wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        button_select_image = wx.Image(button_image_pressed_file,
-                                      wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        self.button  = wx.BitmapButton(self.panel, id=-1,
-                                       bitmap=self.button_main_image,
-                                       size=(self.button_main_image.GetWidth(),
-                                             self.button_main_image.GetHeight()))
-        self.button.SetBitmapHover(self.button_hover_image)
-        self.button.SetBitmapSelected(button_select_image)
-        self.button.Bind(wx.EVT_BUTTON, self.ButtonClick)
-        self.button_norm = True
+        self.cur_high = 0
+        self.buttons[0].SetBitmap(self.highlight_images[0])
 
         self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.HighlightButton, self.timer)
+        self.Bind(wx.EVT_TIMER, self.IterateThroughButtons, self.timer)
         self.timer.Start(400)
 
     def ButtonClick(self, event):
         print 'button clicked'
 
-    def HighlightButton(self, event):
-        if self.button_norm:
-            self.button.SetBitmap(self.button_hover_image)
-            print 'switching to hover'
-        else:
-            self.button.SetBitmap(self.button_main_image)
-            print 'switching back to main'
-        self.button_norm = not self.button_norm
+    def IterateThroughButtons(self, event):
+        self.buttons[self.cur_high].SetBitmap(self.normal_images[self.cur_high])
+        self.cur_high = (self.cur_high + 1) % len(self.buttons)
+        self.buttons[self.cur_high].SetBitmap(self.highlight_images[self.cur_high])
 
     def CloseWindow(self):
         self.Close()
