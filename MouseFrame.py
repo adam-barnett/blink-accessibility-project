@@ -17,10 +17,16 @@ class MouseFrame(wx.Frame):
                6:"scrl_up", 7:"left_click", 8:"dbl_left_click", 9:"right_click"}
         button_size = (50,50)
         config = (5,2)
-        wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
-                  size=(button_size[0]*config[0], button_size[1]*config[1]),
-                          style=wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
+        (screen_w, screen_h) = wx.DisplaySize()
+        this_size = (button_size[0]*config[0], button_size[1]*config[1])
+        wx.Frame.__init__(self, None, 1, "title",
+                          pos=(screen_w - this_size[0],
+                               screen_h*3/4 - this_size[1]/2),
+                          size=this_size,
+                          style=wx.NO_BORDER|
+                          wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
         self.panel = wx.Panel(self, size=self.GetSize())
+        self.SetTransparent(230)
         current_dir = os.getcwd() + "\\buttons\\"
 
         self.buttons = []
