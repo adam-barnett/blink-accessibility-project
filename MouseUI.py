@@ -10,7 +10,7 @@ highlighted button when it is.
 
 
 
-class MouseFrame(wx.Frame):
+class MouseUI(wx.Frame):
     
     def __init__(self):
         self.button_dict = {0:"up", 1:"down", 2:"left", 3:"right",
@@ -95,7 +95,7 @@ class MouseFrame(wx.Frame):
 if __name__ == "__main__":
     class MyApp(wx.App):
         def OnInit(self):
-            self.frame = MouseFrame()  
+            self.frame = MouseUI()  
             self.frame.Show(True)
             self.SetTopWindow(self.frame)
             self.Bind(wx.EVT_CHAR_HOOK, self.KeyPress)

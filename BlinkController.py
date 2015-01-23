@@ -2,7 +2,7 @@ import wx
 import time
 from wx.lib.pubsub import pub
 from BlinkDetector import BlinkDetector
-from MouseFrame import MouseFrame
+from MouseUI import MouseUI
 from MouseController import MouseController
 
 
@@ -18,8 +18,8 @@ class BlinkControllerFrame(wx.Frame):
     def to_be_done():
         print 'currently there is no menu available'
     
-    self.mouse_frame = MouseFrame()
-    self.mouse_frame.Show(True)
+    self.mouse_ui = MouseUI()
+    self.mouse_ui.Show(True)
     self.mouse_cont = MouseController()
     self.mouse_actions = {"up":self.mouse_cont.Up, "down":self.mouse_cont.Down,
                           "left":self.mouse_cont.Left,
@@ -51,7 +51,7 @@ class BlinkControllerFrame(wx.Frame):
       elif current_blink - self.blink_started > 0.100:
         #blink detected
         self.blink_started = None
-        command = self.mouse_frame.ClickInput()
+        command = self.mouse_ui.ClickInput()
         self.mouse_actions[command]()
         if command == "right_click":
           #need to grab back the focus so that the timers all work
@@ -70,7 +70,7 @@ class BlinkControllerFrame(wx.Frame):
     self.top_to_bottom.Show()
 
   def CloseWindow(self):
-    self.mouse_frame.Close()
+    self.mouse_ui.Close()
     self.mouse_cont.Close()
     self.Destroy()
 
