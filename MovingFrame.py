@@ -24,21 +24,16 @@ class MovingFrame(wx.Frame):
         else:
             ypos = height/2
             height = 6
-        #self.SetSpeed()
+
         wx.Frame.__init__(self, None, 1, "title", pos=(xpos, ypos),
                   size=(width, height), style=
                   wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
-          
         self.panel = wx.Panel(self, pos=(xpos, ypos), size=self.GetSize())
         self.SetBackgroundColour((200,0,0))
-        #self.panel.SetFocus()
 
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.Move, self.timer)
 
-##    def SetSpeed(self):
-##        self.move = (self.move[0] * self.speed, self.move[1]*self.speed)
-##        
     def Move(self, event):  
         pos = self.GetPosition()
         (width, height) = wx.DisplaySize()
@@ -48,12 +43,7 @@ class MovingFrame(wx.Frame):
             pos.y += self.move[1]
             self.SetPosition(pos)
         self.Refresh()
-##
-##    def ToggleStopStart(self):
-##        if self.timer.IsRunning():
-##            self.timer.Stop()
-##        else:
-##            self.timer.Start(20)
+
 
     def StartMoving(self, top_left_corner=True):
         direction = 1
@@ -76,15 +66,25 @@ class MovingFrame(wx.Frame):
     def IsMoving(self):
         return self.timer.IsRunning()
 
-    def ResetPosition(self):
-        (w,h) = wx.DisplaySize()
+    def ResetPosition(self, x_avoid, y_avoid):
+        (x,y) = wx.DisplaySize()
+        (self_w, self_h) = self.GetSize()
         if self.moving_horizontally:
-            w = w/2
-            h = 0
+            x = x/2
+            self_w_ceil = self_w/2 + 1
+            if(x - self_w_ceil < x_avoid
+               and x + self_w_ceil > x_avoid):
+                x = x - self_w
+            y = 0
         else:
-            h = h/2
-            w = 0
-        self.SetPosition((w,h))
+            y = y/2
+            self_h_ceil = self_h/2 + 1
+            if(y - self_h_ceil < y_avoid
+               and y + self_h_ceil > y_avoid):
+                y = y - self_h
+            x = 0
+        self.SetPosition((x,y))
+
 
     def GivePosition(self):
         pos = self.GetPosition()
@@ -128,8 +128,8 @@ if __name__ == "__main__":
                 self.frame3.CloseWindow()
                 self.ExitMainLoop()
             elif event.GetKeyCode() == wx.WXK_RETURN:
-                self.frame1.ResetPosition()
-                self.frame2.ResetPosition()
+                self.frame1.ResetPosition(0,0)
+                self.frame2.ResetPosition(0,0)
             
     app = MyApp(0)
     app.SetCallFilterEvent(True)
