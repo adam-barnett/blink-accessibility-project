@@ -2,8 +2,8 @@ import wx
 import time
 from wx.lib.pubsub import pub
 from BlinkDetector import BlinkDetector
-from MovingFrame import MovingFrame
-from pymouse import PyMouse
+from MouseFrame import MouseFrame
+from MouseController import MouseController
 
 
 """
@@ -14,17 +14,30 @@ elements to allow the user control
 class BlinkControllerFrame(wx.Frame):
     
   def __init__(self, moving_horizontally=True, speed=20):
-    self.left_to_right = MovingFrame()
-    self.top_to_bottom = MovingFrame(False)
-    self.left_to_right.Show(True)
-    self.top_to_bottom.Show(True)
+
+    def to_be_done():
+        print 'currently there is no menu available'
+    
+    self.mouse_frame = MouseFrame()
+    self.mouse_frame.Show(True)
+    self.mouse_cont = MouseController()
+    self.mouse_actions = {"up":self.mouse_cont.Up, "down":self.mouse_cont.Down,
+                          "left":self.mouse_cont.Left,
+                          "right":self.mouse_cont.Right,
+                          "scrl_down":self.mouse_cont.ScrlDown,
+                          "scrl_up":self.mouse_cont.ScrlUp,
+                          "left_click":self.mouse_cont.LeftClick,
+                          "dbl_left_click":self.mouse_cont.DoubleLeftClick,
+                          "right_click":self.mouse_cont.RightClick,
+                          "menu":to_be_done}
+
     wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
                   size=(0,0), style=
                   wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
-    self.mouse = PyMouse()
     self.watcher = BlinkDetector(wx.DisplaySize(), True)
     pub.subscribe(self.SwitchInput, ("SwitchInput"))
     self.blink_started = None
+    
     self.watcher.RunDetect()
         
   def SwitchInput(self, msg):
@@ -32,24 +45,15 @@ class BlinkControllerFrame(wx.Frame):
       #close command sent
       self.CloseWindow()
     elif msg == "shut":
-      #blink detected 
       current_blink = time.time()
       if self.blink_started is None:
         self.blink_started = current_blink
       elif current_blink - self.blink_started > 0.100:
+        #blink detected
         self.blink_started = None
-        if self.left_to_right.IsMoving():
-          self.left_to_right.ToggleStopStart()
-          self.top_to_bottom.ToggleStopStart()
-        elif self.top_to_bottom.IsMoving():
-          self.top_to_bottom.ToggleStopStart()
-          xpos = self.left_to_right.GivePosition()
-          ypos = self.top_to_bottom.GivePosition()
-          self.left_to_right.ResetPosition()
-          self.top_to_bottom.ResetPosition()
-          self.Click(xpos, ypos)
-        else:
-          self.left_to_right.ToggleStopStart()
+        command = self.mouse_frame.ClickInput()
+        print command
+        self.mouse_actions[command]()
     elif msg == "open":
       #eyes are open
       self.blink_started = None
@@ -63,8 +67,8 @@ class BlinkControllerFrame(wx.Frame):
     self.top_to_bottom.Show()
 
   def CloseWindow(self):
-    self.left_to_right.CloseWindow()
-    self.top_to_bottom.CloseWindow()
+    self.mouse_frame.Close()
+    self.mouse_cont.Close()
     self.Destroy()
 
 

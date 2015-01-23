@@ -10,32 +10,35 @@ Used to specify a particular piece of the screen
 
 class MovingFrame(wx.Frame):
     
-    def __init__(self, moving_horizontally=True, speed=1):
+    def __init__(self, moving_horizontally=True, speed=4):
 
         self.speed = speed
         (width, height) = wx.DisplaySize()
         self.moving_horizontally = moving_horizontally
+        xpos = 0
+        ypos = 0
+        self.move = (0,0)
         if(self.moving_horizontally):
+            xpos = width/2
             width = 6
-            self.move = (2,0)
         else:
+            ypos = height/2
             height = 6
-            self.move = (0,2)
-        self.SetSpeed()
-        wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
+        #self.SetSpeed()
+        wx.Frame.__init__(self, None, 1, "title", pos=(xpos, ypos),
                   size=(width, height), style=
                   wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
           
-        self.panel = wx.Panel(self, size=self.GetSize())
+        self.panel = wx.Panel(self, pos=(xpos, ypos), size=self.GetSize())
         self.SetBackgroundColour((200,0,0))
-        self.panel.SetFocus()
+        #self.panel.SetFocus()
 
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.Move, self.timer)
 
-    def SetSpeed(self):
-        self.move = (self.move[0] * self.speed, self.move[1]*self.speed)
-        
+##    def SetSpeed(self):
+##        self.move = (self.move[0] * self.speed, self.move[1]*self.speed)
+##        
     def Move(self, event):  
         pos = self.GetPosition()
         (width, height) = wx.DisplaySize()
@@ -45,12 +48,26 @@ class MovingFrame(wx.Frame):
             pos.y += self.move[1]
             self.SetPosition(pos)
         self.Refresh()
+##
+##    def ToggleStopStart(self):
+##        if self.timer.IsRunning():
+##            self.timer.Stop()
+##        else:
+##            self.timer.Start(20)
 
-    def ToggleStopStart(self):
-        if self.timer.IsRunning():
-            self.timer.Stop()
+    def StartMoving(self, top_left_corner=True):
+        direction = 1
+        if top_left_corner:
+            direction = -1
+        if self.moving_horizontally:
+            self.move = (direction * self.speed, 0)
         else:
-            self.timer.Start(20)
+            self.move = (0, direction * self.speed)
+        self.timer.Start(20)
+
+    def StopMoving(self):
+        self.move = (0,0)
+        self.timer.Stop()
 
     def CloseWindow(self):
         self.Close()  
@@ -60,7 +77,14 @@ class MovingFrame(wx.Frame):
         return self.timer.IsRunning()
 
     def ResetPosition(self):
-        self.SetPosition((0,0))
+        (w,h) = wx.DisplaySize()
+        if self.moving_horizontally:
+            w = w/2
+            h = 0
+        else:
+            h = h/2
+            w = 0
+        self.SetPosition((w,h))
 
     def GivePosition(self):
         pos = self.GetPosition()
@@ -85,8 +109,19 @@ if __name__ == "__main__":
 
         def KeyPress(self, event):
             if event.GetKeyCode() == wx.WXK_SPACE:
-                self.frame1.ToggleStopStart()
-                self.frame2.ToggleStopStart()
+                if self.frame1.IsMoving():
+                    self.frame1.StopMoving()
+                    self.frame2.StopMoving()
+                else:
+                    self.frame1.StartMoving()
+                    self.frame2.StartMoving()
+            elif event.GetKeyCode() == wx.WXK_SHIFT:
+                if self.frame1.IsMoving():
+                    self.frame1.StopMoving()
+                    self.frame2.StopMoving()
+                else:
+                    self.frame1.StartMoving(top_left_corner=False)
+                    self.frame2.StartMoving(top_left_corner=False)
             elif event.GetKeyCode() == wx.WXK_ESCAPE:
                 self.frame1.CloseWindow()
                 self.frame2.CloseWindow()

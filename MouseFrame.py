@@ -13,8 +13,9 @@ highlighted button when it is.
 class MouseFrame(wx.Frame):
     
     def __init__(self):
-        self.button_dict = {0:"up", 1:"down", 2:"left", 3:"right", 4:"scrl_down",
-               5:"scrl_up", 6:"left_click", 7:"dbl_left_click", 8:"right_click", 9:"menu"}
+        self.button_dict = {0:"up", 1:"down", 2:"left", 3:"right",
+                            4:"scrl_down", 5:"scrl_up", 6:"left_click",
+                            7:"dbl_left_click", 8:"right_click", 9:"menu"}
         button_size = (50,50)
         config = (5,2)
         self.timer_speed = 800
