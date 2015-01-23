@@ -18,70 +18,54 @@ class MouseController():
         self.top_to_bottom.Show(True)
 
     def Up(self):
-        print 'mouse_cont_up'
         if self.top_to_bottom.IsMoving():
             self.top_to_bottom.StopMoving()
         else:
             self.top_to_bottom.StartMoving()
 
     def Down(self):
-        print 'mouse_cont_down'
         if self.top_to_bottom.IsMoving():
             self.top_to_bottom.StopMoving()
         else:
             self.top_to_bottom.StartMoving(top_left_corner=False)
 
     def Left(self):
-        print 'mouse_cont_left'
         if self.left_to_right.IsMoving():
             self.left_to_right.StopMoving()
         else:
             self.left_to_right.StartMoving()
 
     def Right(self):
-        print 'mouse_cont_right'
         if self.left_to_right.IsMoving():
             self.left_to_right.StopMoving()
         else:
             self.left_to_right.StartMoving(top_left_corner=False)
 
     def ScrlDown(self):
-        self.mouse.scroll(0,-20)
+        self.mouse.scroll(-20,0)
 
     def ScrlUp(self):
-        self.mouse.scroll(0,20)
+        self.mouse.scroll(20,0)
 
     def LeftClick(self):
         pos = self.GetMousePos()
-        self.left_to_right.Hide()
-        self.top_to_bottom.Hide()
+        self.left_to_right.ResetPosition(pos[0], pos[1])
+        self.top_to_bottom.ResetPosition(pos[0], pos[1])
         self.mouse.click(pos[0],pos[1])
-        self.left_to_right.Show()
-        self.top_to_bottom.Show()
-        self.left_to_right.ResetPosition()
-        self.top_to_bottom.ResetPosition()
+
 
     def DoubleLeftClick(self):
         pos = self.GetMousePos()
-        self.left_to_right.Hide()
-        self.top_to_bottom.Hide()
-        self.mouse.click(pos[0],pos[1])
-        time.sleep(0.05)
-        self.mouse.click(pos[0],pos[1])
-        self.left_to_right.Show()
-        self.top_to_bottom.Show()
-        self.left_to_right.ResetPosition()
-        self.top_to_bottom.ResetPosition()
+        self.left_to_right.ResetPosition(pos[0], pos[1])
+        self.top_to_bottom.ResetPosition(pos[0], pos[1])
+        self.mouse.click(pos[0],pos[1], n=2)
 
     def RightClick(self):
         pos = self.GetMousePos()
-        self.left_to_right.Hide()
-        self.top_to_bottom.Hide()
-        self.mouse.rightClick(pos[0],pos[1])
-        self.left_to_right.Show()
-        self.top_to_bottom.Show()
-        self.left_to_right.ResetPosition()
-        self.top_to_bottom.ResetPosition()
+        self.left_to_right.ResetPosition(pos[0], pos[1])
+        self.top_to_bottom.ResetPosition(pos[0], pos[1])
+        self.mouse.click(pos[0],pos[1], button=2)
+        
 
     def GetMousePos(self):
         xpos = self.left_to_right.GivePosition()
