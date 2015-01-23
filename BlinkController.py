@@ -34,7 +34,7 @@ class BlinkControllerFrame(wx.Frame):
     wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
                   size=(0,0), style=
                   wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
-    self.watcher = BlinkDetector(wx.DisplaySize(), True)
+    self.watcher = BlinkDetector(wx.DisplaySize(),True)
     pub.subscribe(self.SwitchInput, ("SwitchInput"))
     self.blink_started = None
     
@@ -52,8 +52,11 @@ class BlinkControllerFrame(wx.Frame):
         #blink detected
         self.blink_started = None
         command = self.mouse_frame.ClickInput()
-        print command
         self.mouse_actions[command]()
+        if command == "right_click":
+          #need to grab back the focus so that the timers all work
+          #(in case a menu was opened which stole it)
+          self.SetFocus()
     elif msg == "open":
       #eyes are open
       self.blink_started = None
