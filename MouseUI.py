@@ -75,7 +75,7 @@ class MouseUI(wx.Frame):
     def ClickInput(self):
         if self.timer.IsRunning():
             self.buttons[self.cur_high].SetBitmap(self.click_images[self.cur_high])
-            if self.cur_high < 6:
+            if self.cur_high < 4:
                 #then this is a continuous action
                 self.timer.Stop()
         else:

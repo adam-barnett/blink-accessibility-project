@@ -42,10 +42,10 @@ class MouseController():
             self.left_to_right.StartMoving(top_left_corner=False)
 
     def ScrlDown(self):
-        self.mouse.scroll(-20,0)
+        self.mouse.scroll(-5,0)
 
     def ScrlUp(self):
-        self.mouse.scroll(20,0)
+        self.mouse.scroll(5,0)
 
     def LeftClick(self):
         pos = self.GetMousePos()
