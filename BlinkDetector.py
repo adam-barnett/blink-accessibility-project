@@ -50,7 +50,7 @@ class BlinkDetector():
                     pos = None
                 else:
                     #the eyes are currently being detected
-                    (search_image, pos) = self.FindEyesRect(img)
+                    (search_image, pos) = self.FindEyesRect(img, gray, rects)
                 if search_image is not None:
                     #then we search the image to detect blinks
                     blink_pos = self.CheckForBlink(search_image)
@@ -77,7 +77,7 @@ class BlinkDetector():
                 #message in this case in the eventual user friendly
                 #version of the system
 
-    def FindEyesRect(self, img):
+    def FindEyesRect(self, img, gray, rects):
         big_width = 0
         big_height = 0
         search_image = None
