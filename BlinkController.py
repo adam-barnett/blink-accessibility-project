@@ -13,53 +13,9 @@ elements to allow the user control
 
 class BlinkControllerFrame(wx.Frame):
     
-<<<<<<< HEAD
-  def __init__(self, moving_horizontally=True, speed=20):
-    self.left_to_right = MovingFrame(speed=3)
-    self.top_to_bottom = MovingFrame(False, speed=3)
-    self.left_to_right.Show(True)
-    self.top_to_bottom.Show(True)
-    wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
-                  size=(0,0), style=
-                  wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
-    self.mouse = PyMouse()
-    self.watcher = BlinkDetector(wx.DisplaySize(), True)
-    pub.subscribe(self.SwitchInput, ("SwitchInput"))
-    self.blink_started = None
-    self.watcher.RunDetect()
-        
-  def SwitchInput(self, msg):
-    if msg == "closing":
-      #close command sent
-      self.CloseWindow()
-    elif msg == "shut" and self.blink_started != -1:
-      #blink detected 
-      current_blink = time.time()
-      if self.blink_started is None:
-        self.blink_started = current_blink
-      elif current_blink - self.blink_started > 0.120:
-        self.blink_started = -1
-        if self.left_to_right.IsMoving():
-          self.left_to_right.ToggleStopStart()
-          self.top_to_bottom.ToggleStopStart()
-        elif self.top_to_bottom.IsMoving():
-          self.top_to_bottom.ToggleStopStart()
-          xpos = self.left_to_right.GivePosition()
-          ypos = self.top_to_bottom.GivePosition()
-          self.left_to_right.ResetPosition()
-          self.top_to_bottom.ResetPosition()
-          self.Click(xpos, ypos)
-        else:
-          self.left_to_right.ToggleStopStart()
-    elif msg == "open":
-      #eyes are open
-      self.blink_started = None
-=======
     def __init__(self, moving_horizontally=True, speed=20):
-
         def to_be_done():
             print 'currently there is no menu available'
->>>>>>> adding_mouse_frame
 
         self.mouse_ui = MouseUI()
         self.mouse_ui.Show(True)

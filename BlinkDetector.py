@@ -67,6 +67,14 @@ class BlinkDetector():
                     ypos = self.screen_height/2  - display_img.shape[1]/2
                     cv2.imshow("full image", display_img)
                     cv2.moveWindow("full image", xpos, ypos)
+                    hwnd = win32gui.FindWindow(None, "full image")
+                    if hwnd > 0:
+                        active = win32gui.GetForegroundWindow()
+                        if active != hwnd:
+                          [left,top,right,bottom] = win32gui.GetWindowRect(hwnd)
+                          win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST,
+                                                left,top, right-left,
+                                                bottom-top, 0)
                 key_press = cv2.waitKey(20)
                 if key_press == 27:
                     pub.sendMessage("SwitchInput", msg="closing")
@@ -118,52 +126,6 @@ class BlinkDetector():
             if max_shut_val > max_open_val:
                 blink_pos = max_shut_loc
             else:
-<<<<<<< HEAD
-              blink = False
-          if blink:
-            self.eyes_open_msg_sent = False
-            if pos is not None:
-              blink_pos = (blink_pos[0] + pos[0], blink_pos[1] + pos[1])
-            blink_img = img[blink_pos[1]:blink_pos[1]+self.shut_shape[0],
-                            blink_pos[0]:blink_pos[0]+self.shut_shape[1]]
-            blink_bottom_right = (blink_pos[0] + self.shut_shape[1],
-                            blink_pos[1] + self.shut_shape[0])
-            cv2.rectangle(img, blink_pos, blink_bottom_right, 255, 2)
-            #EVENTUALLY - I want to save the blink_img here if eyes were
-              #successfully found, for use in subsequent iterations (to account
-              #for small changes in light over time)
-            pub.sendMessage("SwitchInput", msg="shut")
-            if self.test:
-              winsound.Beep(2500, 100)
-          elif not self.eyes_open_msg_sent:
-            #inform that the eyes are open again
-            self.eyes_open_msg_sent = True
-            pub.sendMessage("SwitchInput", msg="open")
-  
-        if self.test:
-          display_img = cv2.resize(img, (0,0), fx=0.4, fy=0.4)
-          xpos = self.screen_width - int(display_img.shape[0]*1.5)
-          ypos = self.screen_height/2  - display_img.shape[1]/2
-          cv2.imshow("full image", display_img)
-          cv2.moveWindow("full image", xpos, ypos)
-          hwnd = win32gui.FindWindow(None, "full image")
-          if hwnd > 0:
-            active = win32gui.GetForegroundWindow()
-            if active != hwnd:
-              [left,top,right,bottom] = win32gui.GetWindowRect(hwnd)
-              win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, left,
-                                    top, right-left, bottom-top, 0)
-        key_press = cv2.waitKey(20)
-        if key_press == 27:
-          pub.sendMessage("SwitchInput", msg="closing")
-          self.Close()
-          break
-      else:
-        break
-        #this means no camera was found, I will
-        #send an error message in this case in the eventual user friendly
-        #version of the system
-=======
                 blink_pos = None
         return blink_pos
 
@@ -186,7 +148,6 @@ class BlinkDetector():
             #inform that the eyes are open again
             self.eyes_open_msg_sent = True
             pub.sendMessage("SwitchInput", msg="open")
->>>>>>> adding_mouse_frame
 
     def Close(self):
         cv2.destroyAllWindows()
