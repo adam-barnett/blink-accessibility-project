@@ -47,7 +47,7 @@ class MouseUI(wx.Frame):
             button = wx.BitmapButton(self.panel, id=-1, bitmap=butt_im,
                                      pos=(x*button_size[0], y*button_size[1]),
                                      size=button_size)
-            #uncomment these lines to allow interaction with a mouse for testing
+            #uncomment these lines to allow interaction with a mouse for tests
             #button.SetBitmapHover(high_im)
             #button.SetBitmapSelected(click_im)
             self.buttons.append(button)
@@ -66,9 +66,6 @@ class MouseUI(wx.Frame):
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.IterateThroughButtons, self.timer)
         self.timer.Start(self.timer_speed)
-
-    def ButtonClick(self, event):
-        print 'button clicked'
 
     def IterateThroughButtons(self, event):
         self.buttons[self.cur_high].SetBitmap(self.normal_images[self.cur_high])
