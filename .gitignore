@@ -1,3 +1,7 @@
-*.pyc
-open.png
-blink.png
+/*.pyc/open.png/blink.png
+/MouseUI.pyc
+/MouseController.pyc
+/open.png
+/blink.png
+/FocusFrame.pyc
+/BlinkDetector.pyc
