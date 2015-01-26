@@ -8,7 +8,11 @@ import win32gui, win32con
 '''
 This allows basic blink detection using template matching.
 if test is set to True then the system will beep when a blink is detected
-if features is set to True then the 
+if features is set to True then the haar cascades for the face and eyes will
+be used to narrow the area in which the template matching happens.  The effects
+of this are that it slows the system down somewhat (about 100ms per iteration)
+but improves the accuracy if the images of the eyes are not good (i.e. they
+were taken at a different time of day).
 '''
 
 class BlinkDetector():
