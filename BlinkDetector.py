@@ -7,12 +7,17 @@ import win32gui, win32con
 
 '''
 This allows basic blink detection using template matching.
+if test is set to True then the system will beep when a blink is detected
+if features is set to True then the 
 '''
 
 class BlinkDetector():
-    def __init__(self, (screen_width, screen_height), test=False):
-        if not (os.path.isfile('eyes.xml') and os.path.isfile('open.png')
-                and os.path.isfile('blink.png')):
+    def __init__(self, (screen_width, screen_height), test=False,
+                 use_features=False):
+        if not (os.path.isfile('eyes.xml')
+                and os.path.isfile('open.png')
+                and os.path.isfile('blink.png')
+                and os.path.isfile('face.xml')):
             msg = ('Basic file needed missing, please check folder for'
                    'eyes.xml, open.png and blink.png')
             pub.sendMessage('Error Message', msg=msg)
@@ -20,6 +25,7 @@ class BlinkDetector():
             pub.sendMessage("SwitchInput", msg="closing")
         else:
             self.eye_cascade = cv2.CascadeClassifier('eyes.xml')
+            self.face_cascade = cv2.CascadeClassifier('face.xml')
             video_src = 0
             self.cam = cv2.VideoCapture(video_src)
             self.COMP_METHOD = 'cv2.TM_CCOEFF_NORMED'
@@ -28,6 +34,7 @@ class BlinkDetector():
             self.shut_shape = self.shut_eyes.shape
             self.open_shape = self.open_eyes.shape
             self.test = test
+            self.use_features = use_features
             self.screen_width = screen_width
             self.screen_height = screen_height
             self.eyes_open_msg_sent = True
@@ -43,22 +50,29 @@ class BlinkDetector():
             ret, img = self.cam.read()
             if ret:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                rects = self.eye_cascade.detectMultiScale(gray, 1.10, 8)
-                if len(rects) == 0:
-                    #the eyes have not been detected so the whole image
-                    #is searched
+                if self.use_features:
+                    rects = self.eye_cascade.detectMultiScale(gray, 1.10, 8)
+                    if len(rects) == 0:
+                        rects = self.face_cascade.detectMultiScale(gray,1.10,8)
+                    if len(rects) == 0:
+                        #the eyes and face have not been detected so the
+                        #whole image must be searched
+                        search_image = gray
+                        pos = None
+                    else:
+                        #the eyes are currently being detected
+                        (search_image, pos) = self.FindEyesRect(img, gray,
+                                                                rects)
+                else:
                     search_image = gray
                     pos = None
-                else:
-                    #the eyes are currently being detected
-                    (search_image, pos) = self.FindEyesRect(img, gray, rects)
                 if search_image is not None:
                     #then we search the image to detect blinks
                     blink_pos = self.CheckForBlink(search_image)
                     if blink_pos is not None:
                         self.BlinkFound(pos, img, blink_pos)
                         if self.test:
-                            winsound.Beep(2500, 200)
+                            winsound.Beep(2500, 50)
                     else:
                         self.EyesOpenMesssage()
                 display_img = cv2.resize(img, (0,0), fx=0.4, fy=0.4)

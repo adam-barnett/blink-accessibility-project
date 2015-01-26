@@ -34,7 +34,7 @@ class BlinkControllerFrame(wx.Frame):
         wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
                           size=(0,0), style=
                           wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
-        self.watcher = BlinkDetector(wx.DisplaySize(),True)
+        self.watcher = BlinkDetector(wx.DisplaySize(),False, False)
         pub.subscribe(self.SwitchInput, ("SwitchInput"))
         self.blink_started = None
         self.watcher.RunDetect()
@@ -47,7 +47,7 @@ class BlinkControllerFrame(wx.Frame):
             current_blink = time.time()
             if self.blink_started is None:
                 self.blink_started = current_blink
-            elif current_blink - self.blink_started > 0.100:
+            elif current_blink - self.blink_started > 0.200:
                 #blink detected
                 self.blink_started = None
                 command = self.mouse_ui.ClickInput()
