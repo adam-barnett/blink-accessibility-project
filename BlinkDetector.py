@@ -61,20 +61,19 @@ class BlinkDetector():
                             winsound.Beep(2500, 200)
                     else:
                         self.EyesOpenMesssage()
-                if self.test:
-                    display_img = cv2.resize(img, (0,0), fx=0.4, fy=0.4)
-                    xpos = self.screen_width - int(display_img.shape[0]*1.5)
-                    ypos = self.screen_height/2  - display_img.shape[1]/2
-                    cv2.imshow("full image", display_img)
-                    cv2.moveWindow("full image", xpos, ypos)
-                    hwnd = win32gui.FindWindow(None, "full image")
-                    if hwnd > 0:
-                        active = win32gui.GetForegroundWindow()
-                        if active != hwnd:
-                          [left,top,right,bottom] = win32gui.GetWindowRect(hwnd)
-                          win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST,
-                                                left,top, right-left,
-                                                bottom-top, 0)
+                display_img = cv2.resize(img, (0,0), fx=0.4, fy=0.4)
+                xpos = self.screen_width - int(display_img.shape[0]*1.5)
+                ypos = self.screen_height/3  - display_img.shape[1]/2
+                cv2.imshow("full image", display_img)
+                cv2.moveWindow("full image", xpos, ypos)
+                hwnd = win32gui.FindWindow(None, "full image")
+                if hwnd > 0:
+                    active = win32gui.GetForegroundWindow()
+                    if active != hwnd:
+                      [left,top,right,bottom] = win32gui.GetWindowRect(hwnd)
+                      win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST,
+                                            left,top, right-left,
+                                            bottom-top, 0)
                 key_press = cv2.waitKey(20)
                 if key_press == 27:
                     pub.sendMessage("SwitchInput", msg="closing")
