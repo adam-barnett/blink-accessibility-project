@@ -1,5 +1,4 @@
 import wx
-import time
 import os
 
 """
@@ -29,8 +28,11 @@ class MouseUI(wx.Frame):
                           wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
         self.panel = wx.Panel(self, size=self.GetSize())
         self.SetTransparent(230)
-        current_dir = os.getcwd() + "\\buttons\\"
-
+        if __name__ == "__main__":
+            add = ""
+        else:
+            add = "\\mouse\\"
+        current_dir = os.getcwd() + add + "\\mouseUIbuttons\\"
         self.buttons = []
         self.highlight_images = []
         self.normal_images = []
@@ -68,13 +70,16 @@ class MouseUI(wx.Frame):
         self.timer.Start(self.timer_speed)
 
     def IterateThroughButtons(self, event):
-        self.buttons[self.cur_high].SetBitmap(self.normal_images[self.cur_high])
+        self.buttons[self.cur_high].SetBitmap(
+            self.normal_images[self.cur_high])
         self.cur_high = (self.cur_high + 1) % len(self.buttons)
-        self.buttons[self.cur_high].SetBitmap(self.highlight_images[self.cur_high])
+        self.buttons[self.cur_high].SetBitmap(
+            self.highlight_images[self.cur_high])
 
     def ClickInput(self):
         if self.timer.IsRunning():
-            self.buttons[self.cur_high].SetBitmap(self.click_images[self.cur_high])
+            self.buttons[self.cur_high].SetBitmap(
+                self.click_images[self.cur_high])
             if self.cur_high < 4:
                 #then this is a continuous action
                 self.timer.Stop()

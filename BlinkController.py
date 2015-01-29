@@ -2,8 +2,7 @@ import wx
 import time
 from wx.lib.pubsub import pub
 from BlinkDetector import BlinkDetector
-from MouseUI import MouseUI
-from MouseController import MouseController
+from mouse import MouseUI, MouseController
 
 
 """
@@ -17,9 +16,9 @@ class BlinkControllerFrame(wx.Frame):
         def to_be_done():
             print 'currently there is no menu available'
 
-        self.mouse_ui = MouseUI()
+        self.mouse_ui = MouseUI.MouseUI()
         self.mouse_ui.Show(True)
-        self.mouse_cont = MouseController()
+        self.mouse_cont = MouseController.MouseController()
         self.mouse_actions = {"up":self.mouse_cont.Up,
                               "down":self.mouse_cont.Down,
                               "left":self.mouse_cont.Left,
@@ -34,7 +33,7 @@ class BlinkControllerFrame(wx.Frame):
         wx.Frame.__init__(self, None, 1, "title", pos=(0,0),
                           size=(0,0), style=
                           wx.NO_BORDER| wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
-        self.watcher = BlinkDetector(wx.DisplaySize(),False, False)
+        self.watcher = BlinkDetector(wx.DisplaySize(),True, False)
         pub.subscribe(self.SwitchInput, ("SwitchInput"))
         self.blink_started = None
         self.watcher.RunDetect()
@@ -47,7 +46,7 @@ class BlinkControllerFrame(wx.Frame):
             current_blink = time.time()
             if self.blink_started is None:
                 self.blink_started = current_blink
-            elif current_blink - self.blink_started > 0.200:
+            elif current_blink - self.blink_started > 0.150:
                 #blink detected
                 self.blink_started = None
                 command = self.mouse_ui.ClickInput()
