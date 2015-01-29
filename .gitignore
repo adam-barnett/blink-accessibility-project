@@ -6,3 +6,8 @@
 /FocusFrame.pyc
 /BlinkDetector.pyc
 /MovingFrame.pyc
+/mouse/MouseController.pyc
+/mouse/MouseUI.pyc
+/mouse/MovingFrame.pyc
+/mouse/__init__.pyc
+/mouse/FocusFrame.pyc
