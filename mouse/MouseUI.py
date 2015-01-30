@@ -1,6 +1,8 @@
 import wx
 import os
 
+MouseUItest = False
+
 """
 A simple frame which displays the options for controlling the mouse,
 highlighting them in order until the a click is entered, returning the
@@ -28,7 +30,7 @@ class MouseUI(wx.Frame):
                           wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
         self.panel = wx.Panel(self, size=self.GetSize())
         self.SetTransparent(230)
-        if __name__ == "__main__":
+        if MouseUItest:
             add = ""
         else:
             add = "\\mouse\\"
@@ -110,6 +112,7 @@ if __name__ == "__main__":
             elif event.GetKeyCode() == wx.WXK_SPACE:
                 print self.frame.ClickInput()
 
+    MouseUItest = True
     app = MyApp(0)
     app.SetCallFilterEvent(True)
     app.MainLoop()
