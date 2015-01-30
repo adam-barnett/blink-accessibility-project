@@ -11,3 +11,7 @@
 /mouse/MovingFrame.pyc
 /mouse/__init__.pyc
 /mouse/FocusFrame.pyc
+/initialisation/Capturer.pyc
+/initialisation/open.png
+/initialisation/blink.png
+/initialisation/TextDisplay.pyc
