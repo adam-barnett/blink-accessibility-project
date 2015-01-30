@@ -1,6 +1,6 @@
 import cv2
 import winsound
-import os.path
+import os
 from wx.lib.pubsub import pub
 import win32gui, win32con
 
@@ -31,13 +31,21 @@ class BlinkDetector():
             self.eye_cascade = cv2.CascadeClassifier('eyes.xml')
             self.face_cascade = cv2.CascadeClassifier('face.xml')
             video_src = 0
+            self.blink_correction = 0.015
+            self.blink_threshold = 0.7
             self.cam = cv2.VideoCapture(video_src)
             self.COMP_METHOD = 'cv2.TM_CCOEFF_NORMED'
-            self.open_eyes = cv2.imread('open.png',0)
-            self.shut_eyes = cv2.imread('blink.png',0)
+            current_dir = os.getcwd()
+            self.open_eyes = cv2.imread(current_dir +
+                                        '\\initialisation\\open.png',0)
+            self.shut_eyes = cv2.imread(current_dir +
+                                        '\\initialisation\\blink.png',0)
             self.shut_shape = self.shut_eyes.shape
             self.open_shape = self.open_eyes.shape
             self.test = test
+            if self.test:
+                self.open_vals = []
+                self.close_vals = []
             self.use_features = use_features
             self.screen_width = screen_width
             self.screen_height = screen_height
@@ -140,7 +148,11 @@ class BlinkDetector():
             else:
                 blink_pos = None
         else:
-            if max_shut_val > max_open_val:
+            if self.test:
+                self.close_vals.append(max_shut_val)
+                self.open_vals.append(max_open_val)
+            if(max_shut_val - self.blink_correction > max_open_val and
+               max_shut_val > self.blink_threshold):
                 blink_pos = max_shut_loc
             else:
                 blink_pos = None
@@ -167,6 +179,11 @@ class BlinkDetector():
             pub.sendMessage("SwitchInput", msg="open")
 
     def Close(self):
+        if self.test:
+            print 'open'
+            print self.open_vals
+            print 'closed'
+            print self.close_vals
         cv2.destroyAllWindows()
         self.cam.release()
 
