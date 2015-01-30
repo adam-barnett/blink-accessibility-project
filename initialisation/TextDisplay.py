@@ -22,6 +22,7 @@ class TextDisplay(wx.Frame):
         self.Bind(wx.EVT_TIMER, self.ChangeText, self.text_timer)
 
     def DisplayMessage(self, msg, countdown=-1, timer=-1):
+        self.text_timer.Stop()
         self.current_text = msg
         if countdown == -1:
             self.text.SetLabel(self.current_text)

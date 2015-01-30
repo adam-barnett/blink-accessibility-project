@@ -5,7 +5,7 @@ from wx.lib.pubsub import pub
 
 class Capturer():
 
-    def __init__(self, test=False):
+    def __init__(self, test=False, screen_width=100):
         video_src = 0
         self.cam = cv2.VideoCapture(video_src)  
         self.eye_cascade = cv2.CascadeClassifier('eyes.xml')
@@ -14,6 +14,7 @@ class Capturer():
         self.casc_iter = iter(cascades)
         self.set_capture_method = False
         self.capture_image = False
+        self.xpos = screen_width/2
         self.finished = False
         self.iterations = 0
         self.matches = []
@@ -58,10 +59,6 @@ class Capturer():
                     if count == self.iterations:
                         if self.set_capture_method:
                             if len(matches) > self.iterations * 0.8:
-                                if cascade == self.eye_cascade:
-                                    print 'using eyes'
-                                elif cascade == self.face_cascade:
-                                    print 'using face'
                                 self.capture_cascade = cascade
                                 self.set_capture_method = False
                                 pub.sendMessage("InitMsg", msg="method_found")
@@ -78,8 +75,10 @@ class Capturer():
                             matches.append(self.EyesFromFace(capture))
                         else:
                             matches.append(capture)
-                    count += 1     
+                    count += 1
+                xpos = self.xpos - img.shape[0]/2
                 cv2.imshow('current_detection', img)
+                cv2.moveWindow('current_detection', xpos, 0)
                 key_press = cv2.waitKey(50)
                 if key_press == 27 or self.finished == True:
                     pub.sendMessage("InitMsg", msg="closing")
