@@ -14,8 +14,10 @@ class MouseController():
         self.mouse = PyMouse()
         self.left_to_right = MovingFrame()
         self.top_to_bottom = MovingFrame(False)
+
+    def Show(self):
         self.left_to_right.Show(True)
-        self.top_to_bottom.Show(True)
+        self.top_to_bottom.Show(True)        
 
     def Up(self):
         if self.top_to_bottom.IsMoving():

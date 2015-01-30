@@ -80,7 +80,7 @@ class Capturer():
                 cv2.imshow('current_detection', img)
                 cv2.moveWindow('current_detection', xpos, 0)
                 key_press = cv2.waitKey(50)
-                if key_press == 27 or self.finished == True:
+                if key_press == 27:
                     pub.sendMessage("InitMsg", msg="closing")
                     self.CloseCapt()
                     break
@@ -99,5 +99,6 @@ class Capturer():
 
 
     def CloseCapt(self):
+        print 'capturer closing itself'
         cv2.destroyAllWindows()
         self.cam.release()

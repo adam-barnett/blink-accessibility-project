@@ -6,7 +6,7 @@ import os
 import winsound
 
 class InitialisationControl():
-    def __init__(self):
+    def __init__(self, test=False):
         (width, _height) = wx.DisplaySize()
         self.capture = Capturer(screen_width=width)
         pub.subscribe(self.InitMsg, ("InitMsg"))
@@ -19,7 +19,12 @@ class InitialisationControl():
         self.fail_message = ("The system was not able to find eyes or a face"
                              "In the camera, check the camera and lighting"
                              "and try again")
-        self.messages = open('init_messages.txt', 'r')
+        current_dir = os.getcwd()
+        if not test:
+            messages_file = current_dir + "\\initialisation\\init_messages.txt"
+        else:
+            messages_file = current_dir + "\\init_messages.txt"
+        self.messages = open(messages_file, 'r')
         (msg, countdown, time) = self.GetMsg(self.messages)
         self.text_display = TextDisplay(msg)
         self.text_display.DisplayMessage(msg, countdown, time)
@@ -28,7 +33,7 @@ class InitialisationControl():
         self.capture.display()
 
     def InitMsg(self, msg):
-        print msg
+        print msg + ' - initialiser message'
         if msg == "closing" or self.last_capture_msg == "closing":
             self.Close()
         elif msg == "method_found" and self.text_finished:
@@ -42,6 +47,7 @@ class InitialisationControl():
             self.text_finished = False
             self.capture.finished = True
             self.text_display.DisplayMessage(self.fail_message, -1, 5000)
+            pub.sendMessage("InitToMain", msg="failed_to_capture")
             self.last_capture_msg = "closing"
         elif msg == "img_saved" and self.text_finished:
             self.last_capture_msg = None
@@ -74,9 +80,7 @@ class InitialisationControl():
                 self.welcome_message = False
                 self.text_finished = False
             elif self.blink_saved == True:
-                print 'success!'
-                #send message back to main blink controller that this has
-                #finished                        
+                self.Close()                      
             elif self.last_capture_msg is not None:
                 self.InitMsg(self.last_capture_msg)
         else:
@@ -101,17 +105,22 @@ class InitialisationControl():
             self.Close()
 
     def Close(self):
-        if self.capture is not None:
+        print 'initialiser closing itself'
+        if getattr(self, 'capture', None):
             self.capture.CloseCapt()
         self.text_display.CloseWindow()
         self.messages.close()
+        if self.blink_saved == True:
+            pub.sendMessage("InitToMain", msg="initialisation_finished")
+        else:
+            pub.sendMessage("InitToMain", msg="failed_to_capture")
 
 
 
 if __name__ == "__main__":
     class MyApp(wx.App):
         def OnInit(self):
-            self.init = InitialisationControl()
+            self.init = InitialisationControl(True)
             self.Bind(wx.EVT_CHAR_HOOK, self.KeyPress)
             return True
 

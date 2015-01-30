@@ -35,11 +35,8 @@ class BlinkDetector():
             self.blink_threshold = 0.7
             self.cam = cv2.VideoCapture(video_src)
             self.COMP_METHOD = 'cv2.TM_CCOEFF_NORMED'
-            current_dir = os.getcwd()
-            self.open_eyes = cv2.imread(current_dir +
-                                        '\\initialisation\\open.png',0)
-            self.shut_eyes = cv2.imread(current_dir +
-                                        '\\initialisation\\blink.png',0)
+            self.open_eyes = cv2.imread('open.png', 0)
+            self.shut_eyes = cv2.imread('blink.png', 0)
             self.shut_shape = self.shut_eyes.shape
             self.open_shape = self.open_eyes.shape
             self.test = test
@@ -83,8 +80,7 @@ class BlinkDetector():
                     blink_pos = self.CheckForBlink(search_image)
                     if blink_pos is not None:
                         self.BlinkFound(pos, img, blink_pos)
-                        if self.test:
-                            winsound.Beep(2500, 50)
+                        winsound.Beep(2500, 50)
                     else:
                         self.EyesOpenMesssage()
                 display_img = cv2.resize(img, (0,0), fx=0.4, fy=0.4)
