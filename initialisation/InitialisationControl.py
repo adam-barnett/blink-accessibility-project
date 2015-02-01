@@ -30,7 +30,10 @@ class InitialisationControl():
         self.text_display.DisplayMessage(msg, countdown, time)
         self.text_display.Show(True)
         self.welcome_message = True
+        if getattr(self, 'capture', None):
+            print 'capture exists'
         self.capture.display()
+        print 'initialisation control __init__ finished'
 
     def InitMsg(self, msg):
         print msg + ' - initialiser message'
@@ -106,10 +109,12 @@ class InitialisationControl():
 
     def Close(self):
         print 'initialiser closing itself'
-        if getattr(self, 'capture', None):
-            self.capture.CloseCapt()
         self.text_display.CloseWindow()
         self.messages.close()
+        pub.unsubscribe(self.InitMsg, ("InitMsg"))
+        if getattr(self, 'capture', None):
+            print 'init closing capture'
+            self.capture.terminate = True
         if self.blink_saved == True:
             pub.sendMessage("InitToMain", msg="initialisation_finished")
         else:

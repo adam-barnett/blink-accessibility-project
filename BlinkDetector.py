@@ -37,6 +37,8 @@ class BlinkDetector():
             self.COMP_METHOD = 'cv2.TM_CCOEFF_NORMED'
             self.open_eyes = cv2.imread('open.png', 0)
             self.shut_eyes = cv2.imread('blink.png', 0)
+            cv2.imshow('open', self.open_eyes)
+            cv2.imshow('closed', self.shut_eyes)
             self.shut_shape = self.shut_eyes.shape
             self.open_shape = self.open_eyes.shape
             self.test = test

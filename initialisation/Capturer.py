@@ -6,6 +6,7 @@ from wx.lib.pubsub import pub
 class Capturer():
 
     def __init__(self, test=False, screen_width=100):
+        print 'initialising capturer'
         video_src = 0
         self.cam = cv2.VideoCapture(video_src)  
         self.eye_cascade = cv2.CascadeClassifier('eyes.xml')
@@ -15,7 +16,7 @@ class Capturer():
         self.set_capture_method = False
         self.capture_image = False
         self.xpos = screen_width/2
-        self.finished = False
+        self.terminate = False
         self.iterations = 0
         self.matches = []
         self.capture_cascade = None
@@ -80,7 +81,7 @@ class Capturer():
                 cv2.imshow('current_detection', img)
                 cv2.moveWindow('current_detection', xpos, 0)
                 key_press = cv2.waitKey(50)
-                if key_press == 27:
+                if key_press == 27 or self.terminate:
                     pub.sendMessage("InitMsg", msg="closing")
                     self.CloseCapt()
                     break
@@ -95,7 +96,7 @@ class Capturer():
     def FindSuitableMatch(self, matches):
         #compares matches to find one which isn't too different from the others
         #and returns that
-        return matches[0]
+        return matches[6]
 
 
     def CloseCapt(self):
