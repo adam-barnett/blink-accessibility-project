@@ -3,6 +3,7 @@ import winsound
 import os
 from wx.lib.pubsub import pub
 import win32gui, win32con
+import math
 
 
 '''
@@ -17,7 +18,7 @@ were taken at a different time of day).
 
 class BlinkDetector():
     def __init__(self, (screen_width, screen_height), test=False,
-                 use_features=False):
+                 use_features=None):
         if not (os.path.isfile('eyes.xml')
                 and os.path.isfile('open.png')
                 and os.path.isfile('blink.png')
@@ -61,10 +62,22 @@ class BlinkDetector():
             ret, img = self.cam.read()
             if ret:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                if self.use_features:
+                if self.use_features is 'face':
+                    rects = self.face_cascade.detectMultiScale(gray,1.10,8)
+                    if len(rects) != 1:
+                        #the eyes and face have not been detected so the
+                        #whole image must be searched
+                        search_image = gray
+                        pos = None
+                    else:
+                        [x, y, width, height] = rects[0]
+                        cv2.rectangle(img, (x, y), (x+width, y+height),
+                                      (0,0,255), 2)
+                        search_rect = self.EyesFromFace(rects[0])
+                        (search_image, pos) = self.SearchImageFromRect(
+                                                    img, gray, search_rect)
+                elif self.use_features == 'eyes':
                     rects = self.eye_cascade.detectMultiScale(gray, 1.10, 8)
-                    if len(rects) == 0:
-                        rects = self.face_cascade.detectMultiScale(gray,1.10,8)
                     if len(rects) == 0:
                         #the eyes and face have not been detected so the
                         #whole image must be searched
@@ -72,8 +85,8 @@ class BlinkDetector():
                         pos = None
                     else:
                         #the eyes are currently being detected
-                        (search_image, pos) = self.FindEyesRect(img, gray,
-                                                                rects)
+                        (search_image, pos) = self.SearchImageFromRect(
+                                                        img, gray, rects)
                 else:
                     search_image = gray
                     pos = None
@@ -109,7 +122,7 @@ class BlinkDetector():
                 #message in this case in the eventual user friendly
                 #version of the system
 
-    def FindEyesRect(self, img, gray, rects):
+    def SearchImageFromRect(self, img, gray, rects):
         big_width = 0
         big_height = 0
         search_image = None
@@ -127,10 +140,16 @@ class BlinkDetector():
                big_height < self.open_shape[0]):
                   big_height = max(self.shut_shape[0], self.open_shape[0])
             cv2.rectangle(img, (pos[0], pos[1]),
-                          (pos[0]+big_width, pos[1]+big_height), (255,0,0), 2)
+                          (pos[0]+big_width, pos[1]+big_height), (0,255,0), 2)
             search_image = gray[pos[1]:pos[1]+big_height,
                                 pos[0]:pos[0]+big_width]
         return (search_image, pos)
+
+    def EyesFromFace(self, face_rect):
+        [x, y, width, height] = face_rect
+        eyes_top = y + int(height * 0.294)
+        eyes_bottom = int(math.ceil(height * 0.221))
+        return [[x - 10, eyes_top - 10, width + 10, eyes_bottom + 10]]
 
     def CheckForBlink(self, search_image):
         method = eval(self.COMP_METHOD)
@@ -164,7 +183,7 @@ class BlinkDetector():
                         blink_pos[0]:blink_pos[0]+self.shut_shape[1]]
         blink_bottom_right = (blink_pos[0] + self.shut_shape[1],
                               blink_pos[1] + self.shut_shape[0])
-        cv2.rectangle(img, blink_pos, blink_bottom_right, 255, 2)
+        cv2.rectangle(img, blink_pos, blink_bottom_right, (255,0,0), 2)
         #EVENTUALLY - I want to save the blink_img here if eyes were
         #successfully found, for use in subsequent iterations (to account
         #for small changes in light over time)
@@ -195,7 +214,7 @@ if __name__ == "__main__":
     def listener2(msg): print "Error:- ", msg
     pub.subscribe(listener2, 'Error Message')
 
-    tester = BlinkDetector((400,400), True)
+    tester = BlinkDetector((400,400), True, None)
     tester.RunDetect()
     
 
