@@ -3,10 +3,14 @@ import time
 import math
 from wx.lib.pubsub import pub
 
+"""
+The opencv functions used during the initialisation to capture the base images
+of the eyes.  Also determines what cascade should be used in the capture.
+"""
+
 class Capturer():
 
     def __init__(self, test=False, screen_width=100):
-        print 'initialising capturer'
         video_src = 0
         self.cam = cv2.VideoCapture(video_src)  
         self.eye_cascade = cv2.CascadeClassifier('eyes.xml')
@@ -102,6 +106,5 @@ class Capturer():
 
 
     def CloseCapt(self):
-        print 'capturer closing itself'
         cv2.destroyAllWindows()
         self.cam.release()

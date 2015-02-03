@@ -27,10 +27,8 @@ class BlinkControllerFrame(wx.Frame):
         self.initialiser = InitialisationControl.InitialisationControl()
 
     def InitManager(self, msg):
-        print msg + '- controller message'
         if msg == "initialisation_finished":
             if getattr(self, 'initialiser', None):
-                print 'closing initialiser'
                 self.initialiser.Close()
             self.mouse_ui = MouseUI.MouseUI()
             self.mouse_cont = MouseController.MouseController()
@@ -70,7 +68,7 @@ class BlinkControllerFrame(wx.Frame):
             current_blink = time.time()
             if self.blink_started is None:
                 self.blink_started = current_blink
-            elif current_blink - self.blink_started > 0.150:
+            elif current_blink - self.blink_started > 0.180:
                 #blink detected
                 self.blink_started = None
                 command = self.mouse_ui.ClickInput()
@@ -84,13 +82,11 @@ class BlinkControllerFrame(wx.Frame):
             self.blink_started = None
 
     def CloseWindow(self):
-        print 'controller closing'
         if getattr(self, 'watcher', None):
             self.watcher.Close()
         if getattr(self, 'initialiser', None):
             self.initialiser.Close()
         if getattr(self, 'mouse_ui', None):
-            print 'mouse_ui_close'
             self.mouse_ui.Close()
         if getattr(self, 'mouse_cont', None):
             self.mouse_cont.Close()

@@ -5,6 +5,13 @@ from TextDisplay import TextDisplay
 import os
 import winsound
 
+"""
+During the initialisation of the system this class coordinates the TextDisplay
+and the Capturer in getting the correct images of the users eyes, then it
+communicates with the main system and translates all of the captured systems
+and information.
+"""
+
 class InitialisationControl():
     def __init__(self, test=False):
         (width, _height) = wx.DisplaySize()
@@ -32,13 +39,9 @@ class InitialisationControl():
         self.text_display.DisplayMessage(msg, countdown, time)
         self.text_display.Show(True)
         self.welcome_message = True
-        if getattr(self, 'capture', None):
-            print 'capture exists'
         self.capture.display()
-        print 'initialisation control __init__ finished'
 
     def InitMsg(self, msg):
-        print msg + ' - initialiser message'
         if msg == "closing" or self.last_capture_msg == "closing":
             self.Close()
         elif msg == "method_found" and self.text_finished:
@@ -110,7 +113,6 @@ class InitialisationControl():
             self.Close()
 
     def Close(self):
-        print 'initialiser closing itself'
         self.text_display.CloseWindow()
         self.messages.close()
         pub.unsubscribe(self.InitMsg, ("InitMsg"))
@@ -121,7 +123,6 @@ class InitialisationControl():
                                     str(self.capture.capture_rotation) + '\n')
         self.capture_vals.close()
         if getattr(self, 'capture', None):
-            print 'init closing capture'
             self.capture.terminate = True
         if self.blink_saved == True:
             pub.sendMessage("InitToMain", msg="initialisation_finished")

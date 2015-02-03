@@ -1,6 +1,12 @@
 import wx
 from wx.lib.pubsub import pub
 
+"""
+a simple statictext used to display the messages to the user instructing them
+during the initialisation.  Messages can be either timed or timed AND include
+a countdown.
+"""
+
 class TextDisplay(wx.Frame):
 
     def __init__(self, start_up_msg=""):

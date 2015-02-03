@@ -53,6 +53,7 @@ class BlinkDetector():
             self.init = True
 
     def RunDetect(self):
+        cv2.destroyAllWindows()
         cv2.imshow("needed for focus", self.shut_eyes)
         cv2.resizeWindow("needed for focus", 20, 20)
         cv2.moveWindow("needed for focus", -100, -100)
