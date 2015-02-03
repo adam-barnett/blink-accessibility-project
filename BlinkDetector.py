@@ -62,9 +62,10 @@ class BlinkDetector():
             ret, img = self.cam.read()
             if ret:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                if self.use_features is 'face':
+                if self.use_features == 'face':
                     rects = self.face_cascade.detectMultiScale(gray,1.10,8)
                     if len(rects) != 1:
+                        print rects
                         #the eyes and face have not been detected so the
                         #whole image must be searched
                         search_image = gray
@@ -214,7 +215,7 @@ if __name__ == "__main__":
     def listener2(msg): print "Error:- ", msg
     pub.subscribe(listener2, 'Error Message')
 
-    tester = BlinkDetector((400,400), True, None)
+    tester = BlinkDetector((400,400), False, 'face')
     tester.RunDetect()
     
 

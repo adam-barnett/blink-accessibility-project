@@ -1,0 +1,2 @@
+cascade: eyes
+rotation: 0.0

@@ -11,8 +11,8 @@ class Capturer():
         self.cam = cv2.VideoCapture(video_src)  
         self.eye_cascade = cv2.CascadeClassifier('eyes.xml')
         self.face_cascade = cv2.CascadeClassifier('face.xml')
-        cascades = [self.eye_cascade, self.face_cascade]
-        self.casc_iter = iter(cascades)
+        self.cascades = {'eyes':self.eye_cascade, 'face':self.face_cascade}
+        self.casc_iter = iter(self.cascades)
         self.set_capture_method = False
         self.capture_image = False
         self.xpos = screen_width/2
@@ -20,6 +20,7 @@ class Capturer():
         self.iterations = 0
         self.matches = []
         self.capture_cascade = None
+        self.capture_rotation = 0.0
 
 
     def display(self):
@@ -50,8 +51,8 @@ class Capturer():
                 if cascade is not None and time.time() - wait > 0.5:
                     wait = time.time()
                     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    rects = cascade.detectMultiScale(gray, 1.10, 8,
-                                    flags=cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT)
+                    rects = self.cascades[cascade].detectMultiScale(gray, 1.10,
+                                8, flags=cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT)
                     if len(rects) > 0:
                         [x, y, width, height] = rects[0]
                         capture = img[y:y+height, x:x+width].copy()
@@ -72,7 +73,7 @@ class Capturer():
                         matches = []
                         count = 0
                     elif capture is not None:
-                        if cascade == self.face_cascade:
+                        if cascade == 'face':
                             matches.append(self.EyesFromFace(capture))
                         else:
                             matches.append(capture)
@@ -83,6 +84,7 @@ class Capturer():
                 key_press = cv2.waitKey(50)
                 if key_press == 27 or self.terminate:
                     pub.sendMessage("InitMsg", msg="closing")
+                    cv2.destroyAllWindows()
                     self.CloseCapt()
                     break
 

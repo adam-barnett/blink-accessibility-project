@@ -23,6 +23,7 @@ class BlinkControllerFrame(wx.Frame):
         pub.subscribe(self.SwitchInput, ("SwitchInput"))
         pub.subscribe(self.InitManager, ("InitToMain"))
         self.blink_started = None
+        #pub.sendMessage("InitToMain", msg="initialisation_finished")
         self.initialiser = InitialisationControl.InitialisationControl()
 
     def InitManager(self, msg):
@@ -47,7 +48,12 @@ class BlinkControllerFrame(wx.Frame):
                               "menu":to_be_done}
             self.mouse_ui.Show(True)
             self.mouse_cont.Show()
-            self.watcher = BlinkDetector(wx.DisplaySize(),False, False)
+            setup_values = open('capture_info.txt', 'r')
+            cascade = None
+            for line in setup_values:
+                if line.startswith('cascade'):
+                    cascade = line.replace('cascade: ', '').rstrip()
+            self.watcher = BlinkDetector(wx.DisplaySize(),False, cascade)
             self.watcher.RunDetect()
         elif msg == "failed_to_capture":
             #eventually a backup plan for this should be found

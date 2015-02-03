@@ -23,8 +23,10 @@ class InitialisationControl():
         if not test:
             messages_file = current_dir + "\\initialisation\\init_messages.txt"
         else:
-            messages_file = current_dir + "\\init_messages.txt"
+            messages_file = current_dir + "\\init_messages.txt"   
         self.messages = open(messages_file, 'r')
+        self.capture_vals = open(current_dir + "\\capture_info.txt", 'w')
+        self.capture_vals.truncate
         (msg, countdown, time) = self.GetMsg(self.messages)
         self.text_display = TextDisplay(msg)
         self.text_display.DisplayMessage(msg, countdown, time)
@@ -72,7 +74,7 @@ class InitialisationControl():
                 (msg, countdown, time) = self.GetMsg(self.messages)
                 self.text_display.DisplayMessage(msg, countdown, time)
                 self.blink_saved = True
-                self.capture.finished = True
+                #self.capture.finished = True
         elif msg == "text_display_finished":
             self.text_finished = True
             if self.welcome_message == True:
@@ -112,6 +114,12 @@ class InitialisationControl():
         self.text_display.CloseWindow()
         self.messages.close()
         pub.unsubscribe(self.InitMsg, ("InitMsg"))
+        if self.capture.capture_cascade is not None:
+            self.capture_vals.write('cascade: ' +
+                                    self.capture.capture_cascade + '\n')
+            self.capture_vals.write('rotation: ' +
+                                    str(self.capture.capture_rotation) + '\n')
+        self.capture_vals.close()
         if getattr(self, 'capture', None):
             print 'init closing capture'
             self.capture.terminate = True
