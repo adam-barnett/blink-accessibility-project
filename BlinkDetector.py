@@ -42,6 +42,7 @@ class BlinkDetector():
             cv2.imshow('closed', self.shut_eyes)
             self.shut_shape = self.shut_eyes.shape
             self.open_shape = self.open_eyes.shape
+            self.terminate = True
             self.test = test
             if self.test:
                 self.open_vals = []
@@ -53,7 +54,7 @@ class BlinkDetector():
             self.init = True
 
     def RunDetect(self):
-        cv2.destroyAllWindows()
+        self.terminate = False
         cv2.imshow("needed for focus", self.shut_eyes)
         cv2.resizeWindow("needed for focus", 20, 20)
         cv2.moveWindow("needed for focus", -100, -100)
@@ -64,20 +65,21 @@ class BlinkDetector():
             if ret:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                 if self.use_features == 'face':
-                    rects = self.face_cascade.detectMultiScale(gray,1.10,8)
-                    if len(rects) != 1:
-                        print rects
-                        #the eyes and face have not been detected so the
-                        #whole image must be searched
-                        search_image = gray
-                        pos = None
-                    else:
-                        [x, y, width, height] = rects[0]
-                        cv2.rectangle(img, (x, y), (x+width, y+height),
-                                      (0,0,255), 2)
-                        search_rect = self.EyesFromFace(rects[0])
-                        (search_image, pos) = self.SearchImageFromRect(
-                                                    img, gray, search_rect)
+                    search_image = gray
+                    pos = None
+##                    rects = self.face_cascade.detectMultiScale(gray,1.10,8)
+##                    if len(rects) != 1:
+##                        #the eyes and face have not been detected so the
+##                        #whole image must be searched
+##                        search_image = gray
+##                        pos = None
+##                    else:
+##                        [x, y, width, height] = rects[0]
+##                        cv2.rectangle(img, (x, y), (x+width, y+height),
+##                                      (0,0,255), 2)
+##                        search_rect = self.EyesFromFace(rects[0])
+##                        (search_image, pos) = self.SearchImageFromRect(
+##                                                    img, gray, search_rect)
                 elif self.use_features == 'eyes':
                     rects = self.eye_cascade.detectMultiScale(gray, 1.10, 8)
                     if len(rects) == 0:
@@ -114,15 +116,16 @@ class BlinkDetector():
                                             left,top, right-left,
                                             bottom-top, 0)
                 key_press = cv2.waitKey(20)
-                if key_press == 27:
-                    pub.sendMessage("SwitchInput", msg="closing")
-                    self.Close()
+                if key_press == 27 or self.terminate:
+                    #pub.sendMessage("SwitchInput", msg="closing")
+                    #self.Close()
                     break
             else:
                 break
                 #this means no camera was found, I will send an error
                 #message in this case in the eventual user friendly
                 #version of the system
+        pub.sendMessage("SwitchInput", msg="ready to close")
 
     def SearchImageFromRect(self, img, gray, rects):
         big_width = 0
@@ -216,7 +219,8 @@ if __name__ == "__main__":
     def listener2(msg): print "Error:- ", msg
     pub.subscribe(listener2, 'Error Message')
 
-    tester = BlinkDetector((400,400), False, 'face')
+    tester = BlinkDetector((400,400), True, 'face')
     tester.RunDetect()
+    tester.Close()
     
 

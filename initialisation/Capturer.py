@@ -87,16 +87,23 @@ class Capturer():
                 cv2.moveWindow('current_detection', xpos, 0)
                 key_press = cv2.waitKey(50)
                 if key_press == 27 or self.terminate:
-                    pub.sendMessage("InitMsg", msg="closing")
-                    cv2.destroyAllWindows()
-                    self.CloseCapt()
+                    
+                    #cv2.destroyAllWindows()
+                    #self.CloseCapt()
                     break
+        pub.sendMessage("InitMsg", msg="ready to close")
 
     def EyesFromFace(self, face):
         (height, width) = face.shape[:2]
-        eyes_top = int(height * 0.294)
-        eyes_bottom = int(math.ceil(height * 0.515))
-        eye_img = face[eyes_top:eyes_bottom, 0:width]
+        #old code:
+##        eyes_top = int(height * 0.294)
+##        eyes_bottom = int(math.ceil(height * 0.515))
+##        eye_img = face[eyes_top:eyes_bottom, 0:width]
+        eyes_top = int(height * 0.382)
+        eyes_bottom = int(math.ceil(height * 0.474))
+        eyes_left = int(width * 0.2)
+        eyes_right = int(math.ceil(width*0.8))
+        eye_img = face[eyes_top:eyes_bottom, eyes_left:eyes_right]
         return eye_img
 
     def FindSuitableMatch(self, matches):
@@ -106,5 +113,7 @@ class Capturer():
 
 
     def CloseCapt(self):
+        print 'closing init image capturer'
+        self.terminate = True
         cv2.destroyAllWindows()
         self.cam.release()

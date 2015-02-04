@@ -42,7 +42,7 @@ class InitialisationControl():
         self.capture.display()
 
     def InitMsg(self, msg):
-        if msg == "closing" or self.last_capture_msg == "closing":
+        if msg == "ready to close":# or self.last_capture_msg == "closing":
             self.Close()
         elif msg == "method_found" and self.text_finished:
             self.last_capture_msg = None
@@ -55,8 +55,7 @@ class InitialisationControl():
             self.text_finished = False
             self.capture.finished = True
             self.text_display.DisplayMessage(self.fail_message, -1, 5000)
-            pub.sendMessage("InitToMain", msg="failed_to_capture")
-            self.last_capture_msg = "closing"
+            self.capture.terminate = True
         elif msg == "img_saved" and self.text_finished:
             self.last_capture_msg = None
             self.text_finished = False
@@ -77,7 +76,6 @@ class InitialisationControl():
                 (msg, countdown, time) = self.GetMsg(self.messages)
                 self.text_display.DisplayMessage(msg, countdown, time)
                 self.blink_saved = True
-                #self.capture.finished = True
         elif msg == "text_display_finished":
             self.text_finished = True
             if self.welcome_message == True:
@@ -88,7 +86,7 @@ class InitialisationControl():
                 self.welcome_message = False
                 self.text_finished = False
             elif self.blink_saved == True:
-                self.Close()                      
+                self.capture.terminate = True                  
             elif self.last_capture_msg is not None:
                 self.InitMsg(self.last_capture_msg)
         else:
@@ -113,6 +111,7 @@ class InitialisationControl():
             self.Close()
 
     def Close(self):
+        print 'closing init manager'
         self.text_display.CloseWindow()
         self.messages.close()
         pub.unsubscribe(self.InitMsg, ("InitMsg"))
@@ -123,7 +122,8 @@ class InitialisationControl():
                                     str(self.capture.capture_rotation) + '\n')
         self.capture_vals.close()
         if getattr(self, 'capture', None):
-            self.capture.terminate = True
+            self.capture.CloseCapt()
+            #self.capture.terminate = True
         if self.blink_saved == True:
             pub.sendMessage("InitToMain", msg="initialisation_finished")
         else:
