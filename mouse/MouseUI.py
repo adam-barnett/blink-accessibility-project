@@ -1,7 +1,6 @@
 import wx
 import os
 
-MouseUItest = False
 
 """
 A simple frame which displays the options for controlling the mouse,
@@ -30,7 +29,7 @@ class MouseUI(wx.Frame):
                           wx.FRAME_NO_TASKBAR |wx.STAY_ON_TOP)
         self.panel = wx.Panel(self, size=self.GetSize())
         self.SetTransparent(230)
-        if MouseUItest:
+        if os.path.isfile("MouseUI.py"):
             add = ""
         else:
             add = "\\mouse\\"
@@ -66,7 +65,6 @@ class MouseUI(wx.Frame):
 
         self.cur_high = 0
         self.buttons[0].SetBitmap(self.highlight_images[0])
-
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.IterateThroughButtons, self.timer)
         self.timer.Start(self.timer_speed)
@@ -99,6 +97,7 @@ class MouseUI(wx.Frame):
 if __name__ == "__main__":
     class MyApp(wx.App):
         def OnInit(self):
+            print 'somehow here, this is a problem!!'
             self.frame = MouseUI()  
             self.frame.Show(True)
             self.SetTopWindow(self.frame)
@@ -112,7 +111,6 @@ if __name__ == "__main__":
             elif event.GetKeyCode() == wx.WXK_SPACE:
                 print self.frame.ClickInput()
 
-    MouseUItest = True
     app = MyApp(0)
     app.SetCallFilterEvent(True)
     app.MainLoop()
