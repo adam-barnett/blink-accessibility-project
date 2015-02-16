@@ -95,10 +95,6 @@ class Capturer():
 
     def EyesFromFace(self, face):
         (height, width) = face.shape[:2]
-        #old code:
-##        eyes_top = int(height * 0.294)
-##        eyes_bottom = int(math.ceil(height * 0.515))
-##        eye_img = face[eyes_top:eyes_bottom, 0:width]
         eyes_top = int(height * 0.382)
         eyes_bottom = int(math.ceil(height * 0.474))
         eyes_left = int(width * 0.2)
@@ -113,7 +109,6 @@ class Capturer():
 
 
     def CloseCapt(self):
-        print 'closing init image capturer'
         self.terminate = True
         cv2.destroyAllWindows()
         self.cam.release()

@@ -111,7 +111,6 @@ class InitialisationControl():
             self.Close()
 
     def Close(self):
-        print 'closing init manager'
         self.text_display.CloseWindow()
         self.messages.close()
         pub.unsubscribe(self.InitMsg, ("InitMsg"))

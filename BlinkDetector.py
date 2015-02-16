@@ -67,6 +67,11 @@ class BlinkDetector():
                 if self.use_features == 'face':
                     search_image = gray
                     pos = None
+                    """
+The following code is currently removed because the face cascade is too slow
+but it may be needed in future for size invariance.  Ideally it will be
+activated once every 5 iterations or something similar
+"""
 ##                    rects = self.face_cascade.detectMultiScale(gray,1.10,8)
 ##                    if len(rects) != 1:
 ##                        #the eyes and face have not been detected so the

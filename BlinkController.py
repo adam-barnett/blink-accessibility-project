@@ -24,8 +24,7 @@ class BlinkControllerFrame(wx.Frame):
         pub.subscribe(self.InitManager, ("InitToMain"))
         self.blink_started = None
 
-        pub.sendMessage("InitToMain", msg="initialisation_finished")
-        #self.initialiser = InitialisationControl.InitialisationControl()
+        self.initialiser = InitialisationControl.InitialisationControl()
 
     def InitManager(self, msg):
         if msg == "initialisation_finished":
