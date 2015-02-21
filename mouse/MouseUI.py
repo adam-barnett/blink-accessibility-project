@@ -97,7 +97,6 @@ class MouseUI(wx.Frame):
 if __name__ == "__main__":
     class MyApp(wx.App):
         def OnInit(self):
-            print 'somehow here, this is a problem!!'
             self.frame = MouseUI()  
             self.frame.Show(True)
             self.SetTopWindow(self.frame)
