@@ -2,7 +2,7 @@ import wx
 import time
 from wx.lib.pubsub import pub
 from BlinkDetector import BlinkDetector
-from mouse import MouseUI, MouseController
+from mouse import MouseUIGrid, MouseController
 from initialisation import InitialisationControl
 
 
@@ -30,10 +30,10 @@ class BlinkControllerFrame(wx.Frame):
         if msg == "initialisation_finished":
             if getattr(self, 'initialiser', None):
                 self.initialiser.Close()
-            self.mouse_ui = MouseUI.MouseUI()
+            self.mouse_ui = MouseUIGrid.MouseUIGrid()
             self.mouse_cont = MouseController.MouseController()
             def to_be_done():
-                print 'currently there is no menu available'
+                print 'this button is currently not implemented'
             self.mouse_actions = {"up":self.mouse_cont.Up,
                               "down":self.mouse_cont.Down,
                               "left":self.mouse_cont.Left,
@@ -43,7 +43,9 @@ class BlinkControllerFrame(wx.Frame):
                               "left_click":self.mouse_cont.LeftClick,
                               "dbl_left_click":self.mouse_cont.DoubleLeftClick,
                               "right_click":self.mouse_cont.RightClick,
-                              "menu":to_be_done}
+                              "menu":to_be_done,
+                              "hold_left":to_be_done,
+                              "keyboard":to_be_done}
             self.mouse_ui.Show(True)
             self.mouse_cont.Show()
             setup_values = open('capture_info.txt', 'r')
@@ -73,11 +75,12 @@ class BlinkControllerFrame(wx.Frame):
                 #blink detected
                 self.blink_started = None
                 command = self.mouse_ui.ClickInput()
-                self.mouse_actions[command]()
-                if command == "right_click":
-                    #need to grab back the focus so that the timers all work
-                    #(in case a menu was opened which stole it)
-                    self.SetFocus()
+                if command is not None:
+                    self.mouse_actions[command]()
+                    if command == "right_click":
+                        #need to grab back the focus so that the timers
+                        #all work (in case a menu was opened which stole it)
+                        self.SetFocus()
         elif msg == "open":
             #eyes are open
             self.blink_started = None
