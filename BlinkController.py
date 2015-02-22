@@ -58,7 +58,8 @@ class BlinkControllerFrame(wx.Frame):
         elif msg == "failed_to_capture" or msg == "closing":
             #eventually a backup plan for this might be useful
             #for now we just close
-            if self.watcher.terminate is not True:
+            if(getattr(self, 'watcher', None) and
+               self.watcher.terminate is not True):
                 self.watcher.terminate = True
             else:
                 self.CloseWindow()
