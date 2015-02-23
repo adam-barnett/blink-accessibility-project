@@ -17,6 +17,7 @@ class MouseUIGrid(wx.Frame):
                             4:"left", 5:"dbl_left_click", 6:"left_click",
                             7:"scrl_down", 8:"scrl_up", 9:"menu",
                             10:"hold_left", 11:"keyboard"}
+        self.pause_ids = [0,1,3,4,9]
         button_size = (100,100)
         self.grid = (3,4)
         self.timer_speed = 800
@@ -104,7 +105,11 @@ class MouseUIGrid(wx.Frame):
             else:
                 self.SetButtonBitmap(button, "clicked")
                 button_text = self.button_dict[button.GetId()]
-                if (button.GetId() < 4 or button.GetId() == 10):
+                pause = False
+                for button_id in self.pause_ids:
+                    if button.GetId() == button_id:
+                        pause = True
+                if pause:
                         #then this is a continuous action
                         self.timer.Stop()
                 else:
