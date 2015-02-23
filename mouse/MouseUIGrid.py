@@ -69,15 +69,13 @@ class MouseUIGrid(wx.Frame):
                 y += 1
             else:
                 x += 1
-        self.cur_row = 0
-        self.cur_col = -1
-        for button in self.buttons[self.cur_row]:
-            self.SetButtonBitmap(button, "highlight_row")                        
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.IterateThroughButtons, self.timer)
-        self.timer.Start(self.timer_speed)
+        self.ResetAll()
 
     def IterateThroughButtons(self, event):
+        if self.timer.GetInterval() != self.timer_speed:
+            self.timer.Start(self.timer_speed)
         if self.cur_row == -1:
             self.ResetAll()
         elif self.cur_col == -1:
@@ -102,6 +100,7 @@ class MouseUIGrid(wx.Frame):
                 self.cur_col = 0
                 self.SetButtonBitmap(self.buttons[self.cur_row][self.cur_col],
                                      "highlight_col")
+                self.timer.Start(int(self.timer_speed * 1.3))
             else:
                 self.SetButtonBitmap(button, "clicked")
                 button_text = self.button_dict[button.GetId()]
@@ -129,6 +128,7 @@ class MouseUIGrid(wx.Frame):
         self.cur_row = 0
         for button in self.buttons[self.cur_row]:
             self.SetButtonBitmap(button, "highlight_row")
+        self.timer.Start(int(self.timer_speed * 1.3))
             
 
     def CloseWindow(self):
