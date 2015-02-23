@@ -33,7 +33,7 @@ class MouseUI(wx.Frame):
             add = ""
         else:
             add = "\\mouse\\"
-        current_dir = os.getcwd() + add + "\\mouseUIbuttons\\"
+        current_dir = os.getcwd() + add + "\\mouseUIbuttonsOld\\"
         self.buttons = []
         self.highlight_images = []
         self.normal_images = []

@@ -13,9 +13,9 @@ highlighted button when it is.
 class MouseUIGrid(wx.Frame):
     
     def __init__(self):
-        self.button_dict = {0:"up", 1:"down", 2:"left", 3:"right",
-                            4:"scrl_down", 5:"scrl_up", 6:"left_click",
-                            7:"dbl_left_click", 8:"right_click", 9:"menu",
+        self.button_dict = {0:"up", 1:"down", 2:"left_click", 3:"right",
+                            4:"left", 5:"dbl_left_click", 6:"left_click",
+                            7:"scrl_down", 8:"scrl_up", 9:"menu",
                             10:"hold_left", 11:"keyboard"}
         button_size = (100,100)
         self.grid = (3,4)
