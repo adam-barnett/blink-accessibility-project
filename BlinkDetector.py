@@ -107,7 +107,7 @@ activated once every 5 iterations or something similar
                         winsound.Beep(2500, 50)
                     else:
                         self.EyesOpenMesssage()
-                display_img = cv2.resize(img, (0,0), fx=0.4, fy=0.4)
+                display_img = cv2.resize(img, (0,0), fx=0.7, fy=0.7)
                 xpos = self.screen_width - int(display_img.shape[0]*1.5)
                 ypos = self.screen_height/3  - display_img.shape[1]/2
                 cv2.imshow("full image", display_img)
