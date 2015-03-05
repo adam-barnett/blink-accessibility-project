@@ -20,3 +20,9 @@
 /capture_info.txt
 /initialisation/capture_info.txt
 /mouse/MouseUIGrid.pyc
+/initialisation/Box.pyc
+/initialisation/left_closed.png
+/initialisation/left_open.png
+/initialisation/nose.png
+/initialisation/right_closed.png
+/initialisation/right_open.png
