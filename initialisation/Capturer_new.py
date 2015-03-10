@@ -59,14 +59,13 @@ class Capturer():
                                             self.face_box.r - self.face_box.l,
                                             self.face_box.b - self.face_box.t)
                         if len(eyes) == 2:
-                            self.StoreEyes(eyes, gray)
-                            cv2.imshow('diff', self.diff_eyes_left[0])
+                            self.StoreEyes(eyes, cur_img)
                         elif len(eyes) == 0:
                             if len(self.diff_eyes_left) > 0:
                                 if iter_since_diff > 10:
                                     cv2.imshow('open', cur_img)
                                     self.SaveImages(cur_img)
-                                    self.capture_eyes = False
+                                    self.capture_eyes_count = -2
                                     pub.sendMessage("InitMsg",
                                                     msg="eyes saved")
                                 else:
@@ -77,11 +76,21 @@ class Capturer():
                         pub.sendMessage("InitMsg", msg="no blink detected")
                 gray = self.RotateImage(gray, self.angle)
                 if self.left_eye_box is not None:
-                    cv2.rectangle(gray, (self.left_eye_box.l + self.face_box.l,
+                    disp = gray.copy()
+                    cv2.rectangle(disp, (self.left_eye_box.l + self.face_box.l,
                                          self.left_eye_box.t + self.face_box.t),
                                   (self.left_eye_box.r + self.face_box.l,
                                    self.left_eye_box.b + self.face_box.t),
                                   (255,0,0), 2)
+                    cv2.rectangle(disp, (self.right_eye_box.l + self.face_box.l,
+                                         self.right_eye_box.t + self.face_box.t),
+                                  (self.right_eye_box.r + self.face_box.l,
+                                   self.right_eye_box.b + self.face_box.t),
+                                  (255,0,0), 2)
+                    cv2.rectangle(disp, (self.face_box.l,self.face_box.t),
+                                  (self.face_box.r,self.face_box.b),
+                                  (0,0,255), 2)
+                    cv2.imshow('areas', disp)
                 cv2.imshow('current_detection', gray)
                 cv2.moveWindow('current_detection', self.xpos, 0)
                 key_press = cv2.waitKey(50)
@@ -105,13 +114,13 @@ class Capturer():
 
     def FindEyes(self, img, eye_box, eyes_list):
         method = eval('cv2.TM_CCOEFF_NORMED')
-        search_img = eye_box.ImageSection(img)#, self.face_box)
+        search_img = eye_box.ImageSection(img)
         furthest = None
         furthest_diff = 1.0
         for diff_img in eyes_list:
             cv2.imshow('diff', diff_img)
             comparison = cv2.matchTemplate(search_img,diff_img,method)
-            _, max_val, _, max_loc = cv2.minMaxLoc(comparison)
+            _, max_val, _, _ = cv2.minMaxLoc(comparison)
             if max_val < furthest_diff:
                 furthest_diff = max_val
                 furthest = diff_img
@@ -121,7 +130,7 @@ class Capturer():
         l = left_eye.r
         r = right_eye.l
         t = int((left_eye.Centre()[1] + right_eye.Centre()[1])/2)
-        b = t + int((r - l)*1.2)
+        b = t + int((r - l)*1.6)
         nose_box = Box([l,t,r-l,b-t])
         return nose_box.ImageSection(img).copy()
         
@@ -129,7 +138,8 @@ class Capturer():
         diff_image = prev_img.copy()
         cv2.absdiff(prev_img, cur_img, diff_image)
         cv2.imshow('diff', diff_image)
-        ret, disp = cv2.threshold(diff_image, 10, 255, cv2.THRESH_BINARY)
+        ret, disp = cv2.threshold(diff_image, 8, 255, cv2.THRESH_BINARY)
+        cv2.imshow('after thresholding', disp)
         kernel = np.ones((5,5),np.uint8)
         erosion = cv2.erode(disp,kernel,iterations = 2)
         dilation = cv2.dilate(erosion,kernel,iterations = 2)
@@ -158,21 +168,18 @@ class Capturer():
 
     def StoreEyes(self, eyes, img):
         for eye in eyes:
-            eye.Expand(0.5, 0.4)
-        self.diff_eyes_left.append(eyes[0].ImageSection(img,
-                                                        self.face_box).copy())
+            eye.Expand(0.2, 0.3)
         if self.left_eye_box is None:
             self.left_eye_box = eyes[0]
         else:
             self.left_eye_box.Combine(eyes[0])
-        self.diff_eyes_right.append(eyes[1].ImageSection(img,
-                                                        self.face_box).copy())
+        self.diff_eyes_left.append(eyes[0].ImageSection(img).copy())
         if self.right_eye_box is None:
             self.right_eye_box = eyes[1]
         else:
             self.right_eye_box.Combine(eyes[1])
+        self.diff_eyes_right.append(eyes[1].ImageSection(img).copy())
         
-
     def DetectEyes(self, rects, width, height):
         if len(rects) < 2 or len(rects) > 5:
             return []
@@ -189,55 +196,47 @@ class Capturer():
         return []
 
     def FindRotation(self, img):
-        angles = [0,2,-2,5,-5 ,10,-10, 15, -15]
-        bigger_angles = [20, -20, 25, -25, 30, -30, 35, -35, 40, -40, 45, -45,
-                         50, -50, 55, -55, 60, -60, 65, -65, 70, -70, 75, -75,
-                         80,  -80, 85, -85, 90, -90, 95, -95, 100, -100, 105,
-                         -105, 110, -110]
-        biggest_size = 0
-        biggest_angle = None
-        biggest_face = []
-        for angle in angles:
+        small_angles = [-10, 0, 10]
+        bigger_angles = [-115, -110, -105, -100, -95, -90, -85, -80, -75, -70,
+                         -65, -60, -55, -50, -45, -40, -35, -30, -25, -20,
+                         -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45,
+                         50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105,
+                         110, 115]
+        longest_section = []
+        #a quick check to see if the face is upright, as this is most likely
+        for angle in small_angles:
             rot = self.RotateImage(img, angle)
             rects = self.face_cascade.detectMultiScale(rot, 1.10, 8,
                                     flags=cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT)
             if len(rects) > 0:
-                [x, y, width, height] = rects[0]
-                size = width * height
-                cv2.imshow(str(angle), rot)
-                save = str(angle) + ".png"
-                cv2.imwrite(save, rot)
-                if size > biggest_size:
-                    biggest_angle = angle
-                    biggest_size = size
-                    biggest_face = rects[0]
-        if biggest_angle is None:
+                longest_section.append(angle)
+        if len(longest_section) != 3:
+            longest_section = []
+            current_section = []
             for angle in bigger_angles:
                 rot = self.RotateImage(img, angle)
                 rects = self.face_cascade.detectMultiScale(rot, 1.10, 8,
                                     flags=cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT)
                 if len(rects) > 0:
-                    [x, y, width, height] = rects[0]
-                    size = width * height
-                    cv2.imshow(str(angle), rot)
-                    save = str(angle) + ".png"
-                    cv2.imwrite(save, rot)
-                    if size > biggest_size:
-                        biggest_angle = angle
-                        biggest_size = size
-                        biggest_face = rects[0]
-        if biggest_angle is not None:
-            r = biggest_face
-            rot = self.RotateImage(img, biggest_angle)
-            found_face = rot[r[1]:r[1]+r[3], r[0]:r[0]+r[2]]
-            cv2.imshow('face found', found_face)
-        self.angle = biggest_angle
-        return biggest_face
+                    current_section.append(angle)
+                else:
+                    if len(current_section) > len(longest_section):
+                        longest_section = current_section
+                    current_section = []
+        face_rect = []
+        if len(longest_section) != 0:
+            best_angle = int(sum(longest_section)/len(longest_section))
+            rot = self.RotateImage(img, best_angle)
+            [face_rect] = self.face_cascade.detectMultiScale(rot,1.10, 8,
+                            flags=cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT)
+            cv2.imshow('rotation found', rot)
+            print best_angle 
+            self.angle = best_angle
+        return face_rect
 
     def RotateImage(self, image, angle):
         if angle == 0: return image
         height, width = image.shape[:2]
-        print height, width, angle
         rot_mat = cv2.getRotationMatrix2D((width/2, height/2), angle, 0.9)
         result = cv2.warpAffine(image, rot_mat, (width, height),
                                 flags=cv2.INTER_LINEAR)
