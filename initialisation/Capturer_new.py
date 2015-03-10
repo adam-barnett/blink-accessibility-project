@@ -17,7 +17,7 @@ class Capturer():
         self.face_cascade = cv2.CascadeClassifier('face.xml')
         self.xpos = screen_width/2
         self.find_rotation = False
-        self.capture_eyes = False
+        self.capture_eyes_count = -1
         self.terminate = False
         self.diff_eyes_left = []
         self.diff_eyes_right = []
@@ -30,7 +30,7 @@ class Capturer():
 
     def Display(self):
         iter_since_diff = 0
-        while True:
+        while True and not self.terminate:
             ret, img = self.cam.read()
             if ret:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -43,13 +43,14 @@ class Capturer():
                             self.RotateImage(gray, self.angle))
                         pub.sendMessage("InitMsg", msg="rotation found")
                     else:
-                        pass
-                        #send message that rotation could not be found
-                elif self.capture_eyes:
-                    if self.prev_img is None or self.face_box is None:
-                        pass
-                        #this should not happen, need to deal with this
-                        #appropriately
+                        pub.sendMessage("InitMsg", msg="no rotation found")
+                elif self.capture_eyes_count >= 0:
+                    if self.face_box is None:
+                        self.capture_eyes_count = -1
+                        pub.sendMessage("InitMsg", msg="no rotation found")
+                    elif self.prev_img is None:
+                        self.prev_img = self.face_box.ImageSection(
+                            self.RotateImage(gray, self.angle))
                     else:
                         cur_img = self.face_box.ImageSection(
                             self.RotateImage(gray, self.angle))
@@ -63,13 +64,18 @@ class Capturer():
                         elif len(eyes) == 0:
                             if len(self.diff_eyes_left) > 0:
                                 if iter_since_diff > 10:
-                                    cv2.imshow('open', gray)
-                                    self.SaveImages(gray)
-                                    print 'eyes saved'
+                                    cv2.imshow('open', cur_img)
+                                    self.SaveImages(cur_img)
                                     self.capture_eyes = False
+                                    pub.sendMessage("InitMsg",
+                                                    msg="eyes saved")
                                 else:
                                     iter_since_diff += 1
                         self.prev_img = cur_img
+                    self.capture_eyes_count += 1
+                    if self.capture_eyes_count > 250:
+                        pub.sendMessage("InitMsg", msg="no blink detected")
+                gray = self.RotateImage(gray, self.angle)
                 if self.left_eye_box is not None:
                     cv2.rectangle(gray, (self.left_eye_box.l + self.face_box.l,
                                          self.left_eye_box.t + self.face_box.t),
@@ -77,11 +83,12 @@ class Capturer():
                                    self.left_eye_box.b + self.face_box.t),
                                   (255,0,0), 2)
                 cv2.imshow('current_detection', gray)
-                cv2.imshow('sub_img', self.face_box.ImageSection(gray))
                 cv2.moveWindow('current_detection', self.xpos, 0)
                 key_press = cv2.waitKey(50)
                 if key_press == 27 or self.terminate:
                     break
+            else:
+                pub.sendMessage("InitMsg", msg="no camera")
         pub.sendMessage("InitMsg", msg="ready to close")
 
     def SaveImages(self, img):
@@ -98,7 +105,7 @@ class Capturer():
 
     def FindEyes(self, img, eye_box, eyes_list):
         method = eval('cv2.TM_CCOEFF_NORMED')
-        search_img = eye_box.ImageSection(img, self.face_box)
+        search_img = eye_box.ImageSection(img)#, self.face_box)
         furthest = None
         furthest_diff = 1.0
         for diff_img in eyes_list:
@@ -116,7 +123,7 @@ class Capturer():
         t = int((left_eye.Centre()[1] + right_eye.Centre()[1])/2)
         b = t + int((r - l)*1.2)
         nose_box = Box([l,t,r-l,b-t])
-        return nose_box.ImageSection(img, self.face_box).copy()
+        return nose_box.ImageSection(img).copy()
         
     def FindDiffs(self, prev_img, cur_img):
         diff_image = prev_img.copy()
@@ -197,6 +204,9 @@ class Capturer():
             if len(rects) > 0:
                 [x, y, width, height] = rects[0]
                 size = width * height
+                cv2.imshow(str(angle), rot)
+                save = str(angle) + ".png"
+                cv2.imwrite(save, rot)
                 if size > biggest_size:
                     biggest_angle = angle
                     biggest_size = size
@@ -209,16 +219,25 @@ class Capturer():
                 if len(rects) > 0:
                     [x, y, width, height] = rects[0]
                     size = width * height
+                    cv2.imshow(str(angle), rot)
+                    save = str(angle) + ".png"
+                    cv2.imwrite(save, rot)
                     if size > biggest_size:
                         biggest_angle = angle
                         biggest_size = size
                         biggest_face = rects[0]
+        if biggest_angle is not None:
+            r = biggest_face
+            rot = self.RotateImage(img, biggest_angle)
+            found_face = rot[r[1]:r[1]+r[3], r[0]:r[0]+r[2]]
+            cv2.imshow('face found', found_face)
         self.angle = biggest_angle
         return biggest_face
 
     def RotateImage(self, image, angle):
         if angle == 0: return image
         height, width = image.shape[:2]
+        print height, width, angle
         rot_mat = cv2.getRotationMatrix2D((width/2, height/2), angle, 0.9)
         result = cv2.warpAffine(image, rot_mat, (width, height),
                                 flags=cv2.INTER_LINEAR)
@@ -235,7 +254,7 @@ if __name__ == "__main__":
 
     def InitMsg(msg):
         if msg == "rotation found":
-            tester.capture_eyes = True
+            tester.capture_eyes_count = 0
   
     pub.subscribe(InitMsg, ("InitMsg"))
 
