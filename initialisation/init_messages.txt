@@ -1,15 +1,7 @@
-Welcome to blink-able
--1
-5000
-This Procedure will initialise the system. During it images of your closed and open eyes will be captured. When the counter reaches zero, keep your eyes open for the following 10 seconds.
-10
--1
-Try to keep your eyes open until the counter reaches zero.  When you hear the beep, close your eyes gently until you hear the following beep.
-10
--1
-close your eyes gently until you hear the beep
--1
-10000
-Success, your eyes have been captured.  Starting now
--1
-5000
+welcome:Welcome to blink-able. This Procedure will initialise the system.
+find rotation:Please try to keep still throughout this process and look at the screen.  Currently the system is finding your face.
+capture eyes:Now please blink once quickly so that your eyes can be captured.
+finished:Success, your eyes have been captured.
+no blink:The system did not detect a clear blink. Please blink again now.
+no rotation:The system was not able to find a face in the camera, check the lighting and positioning. The system will try again in 30 seconds.
+no camera:Apologies, the camera was either not found or connection to it was lost.  Closing down.
