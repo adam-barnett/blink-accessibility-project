@@ -224,7 +224,7 @@ if __name__ == "__main__":
     def listener2(msg): print "Error:- ", msg
     pub.subscribe(listener2, 'Error Message')
 
-    tester = BlinkDetector((400,400), True, 'face')
+    tester = BlinkDetector((800,800), True, 'face')
     tester.RunDetect()
     tester.Close()
     
