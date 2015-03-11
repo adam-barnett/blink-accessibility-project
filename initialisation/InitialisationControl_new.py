@@ -82,7 +82,9 @@ class InitialisationControl():
     def Close(self):
         self.text_display.CloseWindow()
         pub.unsubscribe(self.InitMsg, ("InitMsg"))
-        ## record all the text into capture_vals here
+        output = self.capture.ReturnSetUpVals()
+        for line in output:
+            self.capture_vals.write(line)
         self.capture_vals.close()
         if getattr(self, 'capture', None):
             self.capture.CloseCapt()

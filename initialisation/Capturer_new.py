@@ -100,6 +100,14 @@ class Capturer():
                 pub.sendMessage("InitMsg", msg="no camera")
         pub.sendMessage("InitMsg", msg="ready to close")
 
+    def ReturnSetUpVals(self):
+        values = []
+        values.append("rotation:" + str(self.angle) + "\n")
+        scale = self.right_eye_box.l - self.left_eye_box.r
+        values.append("scale:" + str(scale) + "\n")
+        return values
+                                    
+
     def SaveImages(self, img):
         (l_closed, l_open) = self.FindEyes(img, self.left_eye_box,
                                            self.diff_eyes_left)
@@ -227,11 +235,16 @@ class Capturer():
         if len(longest_section) != 0:
             best_angle = int(sum(longest_section)/len(longest_section))
             rot = self.RotateImage(img, best_angle)
-            [face_rect] = self.face_cascade.detectMultiScale(rot,1.10, 8,
+            face = self.face_cascade.detectMultiScale(rot,1.10, 8,
                             flags=cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT)
-            cv2.imshow('rotation found', rot)
-            print best_angle 
-            self.angle = best_angle
+            if(len(face) == 1):
+                face_rect = face[0]
+                self.angle = best_angle
+            else:
+                print "failed to find face in region: "
+                print longest_section
+                print "with best angle of:"
+                print best_angle
         return face_rect
 
     def RotateImage(self, image, angle):
