@@ -196,7 +196,6 @@ class Capturer():
                 (x1,y1) = box1.Centre()
                 (x2,y2) = box2.Centre()
                 if  abs(x1-x2) > width / 3 and abs(y1-y2) < height / 10:
-                    print 'found'
                     if box1.l > box2.r:
                         return [box2, box1]
                     else:
