@@ -37,7 +37,7 @@ class InitialisationControl():
         self.text_display.DisplayMessage(self.messages["welcome"], 3)
         (width, _height) = wx.DisplaySize()
         self.capture = Capturer(screen_width=width)
-        self.capture.Display() 
+        self.capture.Display()
         
 
     def InitMsg(self, msg):
@@ -48,6 +48,8 @@ class InitialisationControl():
             else:
                 self.Close()
         elif msg == "rotation found":
+            while time.time() - self.rotation_pause < 4:
+                pass
             self.text_display.DisplayMessage(self.messages["capture eyes"])
             self.capture.capture_eyes_count = 0
         elif msg == "eyes saved":
@@ -63,21 +65,16 @@ class InitialisationControl():
             self.failed = True
             self.capture.terminate = True                                 
         elif msg == "text display done":
-            if self.failed:
+            if self.failed or self.capture is None:
                 #the camera was not found so we close
                 self.Close()
-            elif self.capture is None:
-                #the welcome message is over so we finish initialising
-                self.text_display.DisplayMessage(
-                    self.messages["find rotation"])
-                self.capture.find_rotation = True   
             else:
-                #no rotation was found so that message is replaced
+                #the welcome message is over or the rotation needs to be
+                #searched for again (after the 'no rotation' message)
                 self.text_display.DisplayMessage(
                     self.messages["find rotation"])
-                self.capture.find_rotation = True
-                
-    
+                self.rotation_pause = time.time()
+                self.capture.find_rotation = True   
 
     def Close(self):
         self.text_display.CloseWindow()
