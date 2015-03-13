@@ -20,11 +20,15 @@ class BlinkDetector():
     def __init__(self, (screen_width, screen_height), test=False,
                  use_features=None):
         if not (os.path.isfile('eyes.xml')
-                and os.path.isfile('open.png')
-                and os.path.isfile('blink.png')
+                and os.path.isfile('left_open.png')
+                and os.path.isfile('left_closed.png')
+                and os.path.isfile('right_open.png')
+                and os.path.isfile('right_closed.png')
+                and os.path.isfile('nose.png')
                 and os.path.isfile('face.xml')):
             msg = ('Basic file needed missing, please check folder for'
-                   'eyes.xml, open.png and blink.png')
+                   'the images (nose.png, left_closed.png, left_open.png'
+                   'right_closed.png, right_open.png')
             pub.sendMessage('Error Message', msg=msg)
             self.init = False
             pub.sendMessage("SwitchInput", msg="closing")
@@ -36,8 +40,8 @@ class BlinkDetector():
             self.blink_threshold = 0.7
             self.cam = cv2.VideoCapture(video_src)
             self.COMP_METHOD = 'cv2.TM_CCOEFF_NORMED'
-            self.open_eyes = cv2.imread('open.png', 0)
-            self.shut_eyes = cv2.imread('blink.png', 0)
+            self.open_eyes = cv2.imread('left_open.png', 0)
+            self.shut_eyes = cv2.imread('left_closed.png', 0)
             cv2.imshow('open', self.open_eyes)
             cv2.imshow('closed', self.shut_eyes)
             self.shut_shape = self.shut_eyes.shape
