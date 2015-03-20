@@ -26,6 +26,8 @@ class BlinkControllerFrame(wx.Frame):
 
         self.initialiser = InitialisationControl.InitialisationControl()
         #pub.sendMessage("InitToMain", msg="initialisation_finished")
+        #above line can be swapped with line above that to test without
+        #going through initialisation
 
     def InitManager(self, msg):
         if msg == "initialisation_finished":
@@ -54,7 +56,7 @@ class BlinkControllerFrame(wx.Frame):
             for line in setup_values:
                 if line.startswith('cascade'):
                     cascade = line.replace('cascade: ', '').rstrip()
-            self.watcher = BlinkDetector(wx.DisplaySize(),True, cascade)
+            self.watcher = BlinkDetector(wx.DisplaySize())
             self.watcher.RunDetect()
         elif msg == "failed_to_capture" or msg == "closing":
             #eventually a backup plan for this might be useful
