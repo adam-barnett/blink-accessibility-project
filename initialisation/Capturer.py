@@ -24,6 +24,7 @@ class Capturer():
         self.face_box = None
         self.left_eye_box = None
         self.right_eye_box = None
+        self.nose_box = None
         self.prev_img = None
         self.erosion_iterations = 2
         self.angle = 0.0
@@ -106,6 +107,11 @@ class Capturer():
         values.append("rotation:" + str(self.angle) + "\n")
         scale = self.right_eye_box.l - self.left_eye_box.r
         values.append("scale:" + str(scale) + "\n")
+        nose_pos = ','.join([str(self.nose_box.l + self.face_box.l),
+                             str(self.nose_box.t + self.face_box.t),
+                             str(self.nose_box.r + self.face_box.l),
+                             str(self.nose_box.b + self.face_box.t)])
+        values.append("nose_pos:" + nose_pos + "\n")
         return values
                                     
 
@@ -140,8 +146,8 @@ class Capturer():
         r = right_eye.l
         t = int((left_eye.Centre()[1] + right_eye.Centre()[1])/2)
         b = t + int((r - l)*1.2)
-        nose_box = Box([l,t,r-l,b-t])
-        return nose_box.ImageSection(img).copy()
+        self.nose_box = Box([l,t,r-l,b-t])
+        return self.nose_box.ImageSection(img).copy()
         
     def FindDiffs(self, prev_img, cur_img):
         diff_image = prev_img.copy()
