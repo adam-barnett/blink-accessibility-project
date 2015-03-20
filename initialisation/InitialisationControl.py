@@ -61,6 +61,7 @@ class InitialisationControl():
             self.text_display.DisplayMessage(self.messages["no rotation"], 30)
         elif msg == "no blink detected":
             self.text_display.DisplayMessage(self.messages["no blink"])
+            self.capture.erosion_iterations = 1
             self.capture.capture_eyes_count = 0
         elif msg == "no camera":
             self.failed = True

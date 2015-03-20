@@ -25,6 +25,7 @@ class Capturer():
         self.left_eye_box = None
         self.right_eye_box = None
         self.prev_img = None
+        self.erosion_iterations = 2
         self.angle = 0.0
 
 
@@ -138,7 +139,7 @@ class Capturer():
         l = left_eye.r
         r = right_eye.l
         t = int((left_eye.Centre()[1] + right_eye.Centre()[1])/2)
-        b = t + int((r - l)*1.6)
+        b = t + int((r - l)*1.2)
         nose_box = Box([l,t,r-l,b-t])
         return nose_box.ImageSection(img).copy()
         
@@ -149,7 +150,7 @@ class Capturer():
         ret, disp = cv2.threshold(diff_image, 8, 255, cv2.THRESH_BINARY)
         cv2.imshow('after thresholding', disp)
         kernel = np.ones((5,5),np.uint8)
-        erosion = cv2.erode(disp,kernel,iterations = 2)
+        erosion = cv2.erode(disp,kernel,iterations = self.erosion_iterations)
         dilation = cv2.dilate(erosion,kernel,iterations = 2)
         cv2.imshow('final', dilation)
         contours, hierarchy = cv2.findContours(dilation.copy(),
