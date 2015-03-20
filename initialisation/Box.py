@@ -34,6 +34,7 @@ class Box():
     def Expand(self, expand_x, expand_y):
         x = int((self.r - self.l)*expand_x)
         y = int((self.b - self.t)*expand_y)
+        self.t += int(0.5*y)
         self.b += 2*y
         self.l -= x
         self.r += x

@@ -176,7 +176,7 @@ class Capturer():
 
     def StoreEyes(self, eyes, img):
         for eye in eyes:
-            eye.Expand(0.2, 0.3)
+            eye.Expand(0.45, 0.5)
         if self.left_eye_box is None:
             self.left_eye_box = eyes[0]
         else:
