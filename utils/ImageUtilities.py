@@ -17,13 +17,16 @@ def rotate(image, angle):
 
 class ImageStore():
     def __init__(self, norm, image2=None, area=None):
-        self.norm = image1;#this should be the open eyes
+        self.norm = norm;#this should be the open eyes
         if image2 is not None:
             self.special = image2 #this is the closed eyes
         else:
-            self.special = image1
+            self.special = norm
+        self.SetArea(area)
+
+    def SetArea(self, area):
         #area should be of the form [l,t,r,b]
-        if area is None:
+        if area is None or len(area) != 4:
             self.l = None
             self.t = None
             self.r = None
@@ -34,9 +37,25 @@ class ImageStore():
             self.r = area[2]
             self.b = area[3]
 
+    #shape is of the form (height, width)
+    def SetAreaOffset(self, top, shape, offset=None):
+        if offset is not None:
+            xoff = offset[0]
+            yoff = offset[1]
+        else:
+            xoff = 0
+            yoff = 0
+        self.l = top[0] + xoff
+        self.r = top[0] + shape[1] + xoff
+        self.t = top[1] + yoff
+        self.b = top[1] + shape[0] + yoff
+        
+    def GetArea(self):
+        return [self.l, self.t, self.r, self.b]
+
     def ExpandArea(self, expansion):
-        x = int((self.r-self.l)*expansion)
-        y = int((self.b-self.t)*expansion)
+        x = int(((self.r-self.l)/2.0)*expansion)
+        y = int(((self.b-self.t)/2.0)*expansion)
         self.l = self.l - x
         self.r = self.r + x
         self.t = self.t - x
