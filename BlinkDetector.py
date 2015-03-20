@@ -4,6 +4,7 @@ import os
 from wx.lib.pubsub import pub
 import win32gui, win32con
 import math
+from utils.ImageUtilities import resize, rotate, ImageStore
 
 
 '''
@@ -17,104 +18,94 @@ were taken at a different time of day).
 '''
 
 class BlinkDetector():
-    def __init__(self, (screen_width, screen_height), test=False,
-                 use_features=None):
-        if not (os.path.isfile('eyes.xml')
-                and os.path.isfile('left_open.png')
+    def __init__(self, (screen_width, screen_height)):
+        if not (os.path.isfile('left_open.png')
                 and os.path.isfile('left_closed.png')
                 and os.path.isfile('right_open.png')
                 and os.path.isfile('right_closed.png')
                 and os.path.isfile('nose.png')
-                and os.path.isfile('face.xml')):
+                and os.path.isfile('face.xml')
+                and os.path.isfile('capture_info.txt')):
             msg = ('Basic file needed missing, please check folder for'
                    'the images (nose.png, left_closed.png, left_open.png'
                    'right_closed.png, right_open.png')
             pub.sendMessage('Error Message', msg=msg)
             self.init = False
             pub.sendMessage("SwitchInput", msg="closing")
-        else:
-            self.eye_cascade = cv2.CascadeClassifier('eyes.xml')
-            self.face_cascade = cv2.CascadeClassifier('face.xml')
-            video_src = 0
+        else:   
             self.blink_correction = 0.015
             self.blink_threshold = 0.7
-            self.cam = cv2.VideoCapture(video_src)
-            self.COMP_METHOD = 'cv2.TM_CCOEFF_NORMED'
-            self.open_eyes = cv2.imread('left_open.png', 0)
-            self.shut_eyes = cv2.imread('left_closed.png', 0)
-            cv2.imshow('open', self.open_eyes)
-            cv2.imshow('closed', self.shut_eyes)
-            self.shut_shape = self.shut_eyes.shape
-            self.open_shape = self.open_eyes.shape
-            self.terminate = True
-            self.test = test
-            if self.test:
-                self.open_vals = []
-                self.close_vals = []
-            self.use_features = use_features
             self.screen_width = screen_width
             self.screen_height = screen_height
+            
+            video_src = 0
+            self.cam = cv2.VideoCapture(video_src)
+            self.COMP_METHOD = 'cv2.TM_CCOEFF_NORMED'
+            self.face_cascade = cv2.CascadeClassifier('face.xml')
+            self.left = ImageStore(cv2.imread('left_open.png', 0),
+                                   cv2.imread('left_closed.png', 0))
+            self.right = ImageStore(cv2.imread('right_open.png', 0),
+                                    cv2.imread('right_open.png', 0))
+            self.nose = ImageStore(cv2.imread('nose.png', 0))
+
+            expected_info = ['scale', 'rotation', 'nose_pos']
+            info = open('capture_info.txt', 'r')
+            for line in info:
+                if line.startswith('scale'):
+                    self.scale = int(line.split(':')[1])
+                    expected_info.remove('scale')
+                elif line.startswith('rotation'):
+                    self.rotation = int(line.split(':')[1])
+                    expected_info.remove('rotation')
+                elif line.startswith('nose_pos'):
+                    str_pos = line.split(':')[1].split(',')
+                    self.nose.SetArea([int(i) for i in str_pos])
+                    expected_info.remove('nose_pos')
+            if len(expected_info) != 0:
+                print 'some values missing from capture_info.txt'
+                print 'expected to see:'
+                for line in expected_info: print line + ' ,'
+                pub.sendMessage('Error Message', msg=msg)
+                self.init = False
+                pub.sendMessage("SwitchInput", msg="closing")
+            
+            self.terminate = True
             self.eyes_open_msg_sent = True
             self.init = True
 
     def RunDetect(self):
         self.terminate = False
-        cv2.imshow("needed for focus", self.shut_eyes)
-        cv2.resizeWindow("needed for focus", 20, 20)
-        cv2.moveWindow("needed for focus", -100, -100)
+        cv2.imshow("needed for focus", self.nose.norm)
+        #cv2.resizeWindow("needed for focus", 20, 20)
+        #cv2.moveWindow("needed for focus", -100, -100)
         if not self.init:
             return False
         while True:
             ret, img = self.cam.read()
             if ret:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                if self.use_features == 'face':
-                    search_image = gray
-                    pos = None
-                    """
-The following code is currently removed because the face cascade is too slow
-but it may be needed in future for size invariance.  Ideally it will be
-activated once every 5 iterations or something similar
-"""
-##                    rects = self.face_cascade.detectMultiScale(gray,1.10,8)
-##                    if len(rects) != 1:
-##                        #the eyes and face have not been detected so the
-##                        #whole image must be searched
-##                        search_image = gray
-##                        pos = None
-##                    else:
-##                        [x, y, width, height] = rects[0]
-##                        cv2.rectangle(img, (x, y), (x+width, y+height),
-##                                      (0,0,255), 2)
-##                        search_rect = self.EyesFromFace(rects[0])
-##                        (search_image, pos) = self.SearchImageFromRect(
-##                                                    img, gray, search_rect)
-                elif self.use_features == 'eyes':
-                    rects = self.eye_cascade.detectMultiScale(gray, 1.10, 8)
-                    if len(rects) == 0:
-                        #the eyes and face have not been detected so the
-                        #whole image must be searched
-                        search_image = gray
-                        pos = None
-                    else:
-                        #the eyes are currently being detected
-                        (search_image, pos) = self.SearchImageFromRect(
-                                                        img, gray, rects)
-                else:
-                    search_image = gray
-                    pos = None
-                if search_image is not None:
-                    #then we search the image to detect blinks
-                    blink_pos = self.CheckForBlink(search_image)
-                    if blink_pos is not None:
-                        self.BlinkFound(pos, img, blink_pos)
-                        winsound.Beep(2500, 50)
-                    else:
-                        self.EyesOpenMesssage()
-                display_img = cv2.resize(img, (0,0), fx=0.7, fy=0.7)
-                xpos = self.screen_width - int(display_img.shape[0]*1.5)
-                ypos = self.screen_height/3  - display_img.shape[1]/2
-                cv2.imshow("full image", display_img)
+                if(self.SetRotation(gray) is False):
+                    pass
+                    #then we were unable to find a rotation need to
+                    #stay with the current rotation and search for the eyes
+                    #in the entire image
+                cur_img = rotate(gray, self.rotation)
+                
+                #set_eye_areas
+                #check for eye matches
+                #deal with blink if found
+                #if no blink found then display 
+
+                cv2.rectangle(cur_img, (self.nose.l, self.nose.t),
+                              (self.nose.r, self.nose.b), (255,0,0), 2)
+                
+                #display_img = cv2.resize(cur_img, (0,0), fx=0.7, fy=0.7)
+                #xpos = self.screen_width - int(display_img.shape[0]*1.5)
+                #ypos = self.screen_height/3  - display_img.shape[1]/2
+                #cv2.imshow("full image", display_img)
+                xpos = self.screen_width - int(cur_img.shape[0]*1.5)
+                ypos = self.screen_height/3  - cur_img.shape[1]/2
+                cv2.imshow("full image", cur_img)
                 cv2.moveWindow("full image", xpos, ypos)
                 hwnd = win32gui.FindWindow(None, "full image")
                 if hwnd > 0:
@@ -126,8 +117,6 @@ activated once every 5 iterations or something similar
                                             bottom-top, 0)
                 key_press = cv2.waitKey(20)
                 if key_press == 27 or self.terminate:
-                    #pub.sendMessage("SwitchInput", msg="closing")
-                    #self.Close()
                     break
             else:
                 break
@@ -136,6 +125,31 @@ activated once every 5 iterations or something similar
                 #version of the system
         pub.sendMessage("SwitchInput", msg="ready to close")
 
+    def SetRotation(self, image):
+        angles = [10, 5, 0, -5, -10]
+        angles = [i + self.rotation for i in angles]
+        max_val = 0.75
+        max_ang =  None
+        max_loc = (0,0)
+        for angle in angles:
+            rot = rotate(image, angle)
+            matches = cv2.matchTemplate(rot, self.nose.norm,
+                                        cv2.TM_CCOEFF_NORMED)
+            _, val, _, loc = cv2.minMaxLoc(matches)
+            if val > max_val:
+                max_val = val
+                max_loc = loc
+                max_ang = angle
+        if max_ang is None:
+            return False
+        self.nose.SetAreaOffset(max_loc, self.nose.norm.shape)
+        self.rotation = max_ang
+        return True
+            
+        
+
+
+    #not currently used
     def SearchImageFromRect(self, img, gray, rects):
         big_width = 0
         big_height = 0
@@ -159,12 +173,14 @@ activated once every 5 iterations or something similar
                                 pos[0]:pos[0]+big_width]
         return (search_image, pos)
 
+    #not currently used
     def EyesFromFace(self, face_rect):
         [x, y, width, height] = face_rect
         eyes_top = y + int(height * 0.294)
         eyes_bottom = int(math.ceil(height * 0.221))
         return [[x - 10, eyes_top - 10, width + 10, eyes_bottom + 10]]
 
+    #not currently used
     def CheckForBlink(self, search_image):
         method = eval(self.COMP_METHOD)
         shut_res = cv2.matchTemplate(search_image,self.shut_eyes,method)
@@ -189,6 +205,7 @@ activated once every 5 iterations or something similar
                 blink_pos = None
         return blink_pos
 
+    #not currently used
     def BlinkFound(self, pos, img, blink_pos):
         self.eyes_open_msg_sent = False
         if pos is not None:
@@ -203,6 +220,7 @@ activated once every 5 iterations or something similar
         #for small changes in light over time)
         pub.sendMessage("SwitchInput", msg="shut")
 
+    #not currently used
     def EyesOpenMesssage(self):
         if not self.eyes_open_msg_sent:
             #inform that the eyes are open again
@@ -210,11 +228,6 @@ activated once every 5 iterations or something similar
             pub.sendMessage("SwitchInput", msg="open")
 
     def Close(self):
-        if self.test:
-            print 'open'
-            print self.open_vals
-            print 'closed'
-            print self.close_vals
         cv2.destroyAllWindows()
         self.cam.release()
 
