@@ -3,7 +3,7 @@ import time
 from wx.lib.pubsub import pub
 from BlinkDetector import BlinkDetector
 from mouse import MouseUIGrid, MouseController
-from initialisation import InitialisationControl_new
+from initialisation import InitialisationControl
 
 
 """
@@ -24,7 +24,7 @@ class BlinkControllerFrame(wx.Frame):
         pub.subscribe(self.InitManager, ("InitToMain"))
         self.blink_started = None
 
-        self.initialiser = InitialisationControl_new.InitialisationControl()
+        self.initialiser = InitialisationControl.InitialisationControl()
         #pub.sendMessage("InitToMain", msg="initialisation_finished")
 
     def InitManager(self, msg):
@@ -73,7 +73,7 @@ class BlinkControllerFrame(wx.Frame):
             current_blink = time.time()
             if self.blink_started is None:
                 self.blink_started = current_blink
-            elif current_blink - self.blink_started > 0.180:
+            elif current_blink - self.blink_started > 0.160:
                 #blink detected
                 self.blink_started = None
                 command = self.mouse_ui.ClickInput()
