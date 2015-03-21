@@ -60,6 +60,7 @@ class BlinkDetector():
                 elif line.startswith('nose_pos'):
                     str_pos = line.split(':')[1].split(',')
                     self.nose.SetArea([int(i) for i in str_pos])
+                    self.nose.ExpandArea(0.2)
                     expected_info.remove('nose_pos')
             if len(expected_info) != 0:
                 print 'some values missing from capture_info.txt'
@@ -85,10 +86,13 @@ class BlinkDetector():
             if ret:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                 if(self.SetRotation(gray) is False):
-                    pass
-                    #then we were unable to find a rotation need to
-                    #stay with the current rotation and search for the eyes
-                    #in the entire image
+                    #unable to find the rotation near the current nose position
+                    if(self.SetRotation(gray) is False):
+                        #unable to find nose in the entire image
+                        #should count these occurences and if there are a
+                        #bunch in a row then let the blinkcontroller know
+                        #that no face is present
+                        continue
                 cur_img = rotate(gray, self.rotation)
                 
                 #set_eye_areas
@@ -98,6 +102,7 @@ class BlinkDetector():
 
                 cv2.rectangle(cur_img, (self.nose.l, self.nose.t),
                               (self.nose.r, self.nose.b), (255,0,0), 2)
+
                 
                 #display_img = cv2.resize(cur_img, (0,0), fx=0.7, fy=0.7)
                 #xpos = self.screen_width - int(display_img.shape[0]*1.5)
@@ -128,12 +133,14 @@ class BlinkDetector():
     def SetRotation(self, image):
         angles = [10, 5, 0, -5, -10]
         angles = [i + self.rotation for i in angles]
+        self.nose.ExpandArea(0.4)
         max_val = 0.75
         max_ang =  None
         max_loc = (0,0)
         for angle in angles:
             rot = rotate(image, angle)
-            matches = cv2.matchTemplate(rot, self.nose.norm,
+            nose_region = self.nose.ImageSection(rot)
+            matches = cv2.matchTemplate(nose_region, self.nose.norm,
                                         cv2.TM_CCOEFF_NORMED)
             _, val, _, loc = cv2.minMaxLoc(matches)
             if val > max_val:
@@ -141,10 +148,14 @@ class BlinkDetector():
                 max_loc = loc
                 max_ang = angle
         if max_ang is None:
+            self.nose.SetAreaFromImage(image)
             return False
-        self.nose.SetAreaOffset(max_loc, self.nose.norm.shape)
+        prev_area = self.nose.GetArea()
+        self.nose.SetAreaOffset(max_loc, self.nose.norm.shape, prev_area)
         self.rotation = max_ang
         return True
+
+        
             
         
 
