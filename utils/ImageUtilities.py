@@ -37,6 +37,13 @@ class ImageStore():
             self.r = area[2]
             self.b = area[3]
 
+    def SetAreaFromImage(self, image):
+        (y,x) = image.shape[:2]
+        self.l = 0
+        self.t = 0
+        self.r = x
+        self.b = y
+
     #shape is of the form (height, width)
     def SetAreaOffset(self, top, shape, offset=None):
         if offset is not None:
@@ -56,9 +63,9 @@ class ImageStore():
     def ExpandArea(self, expansion):
         x = int(((self.r-self.l)/2.0)*expansion)
         y = int(((self.b-self.t)/2.0)*expansion)
-        self.l = self.l - x
+        self.l = max(self.l - x, 0)
         self.r = self.r + x
-        self.t = self.t - x
+        self.t = max(self.t - x, 0)
         self.r = self.r + x
 
     def ImageSection(self, image, offset=None):
@@ -68,6 +75,10 @@ class ImageStore():
         else:
             x = 0
             y = 0
+        shape = image.shape
+        if(self.t+y > shape[0] or self.b+y > shape[0]
+           or self.l+x > shape[1] or self.r+x > shape[1]):
+            return image
         return image[self.t+y:self.b+y, self.l+x:self.r+x]
         
         
