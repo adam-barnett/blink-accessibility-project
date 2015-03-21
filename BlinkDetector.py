@@ -33,8 +33,8 @@ class BlinkDetector():
             self.init = False
             pub.sendMessage("SwitchInput", msg="closing")
         else:   
-            self.blink_correction = 0.015
-            self.blink_threshold = 0.7
+            self.error_correction = 0.015
+            self.match_threshold = 0.7
             self.screen_width = screen_width
             self.screen_height = screen_height
             
@@ -93,7 +93,11 @@ class BlinkDetector():
                         #bunch in a row then let the blinkcontroller know
                         #that no face is present
                         continue
+                self.SetEyeRegions()
                 cur_img = rotate(gray, self.rotation)
+                if(self.CheckForBlink(cur_img)):
+                    winsound.Beep(2500, 50)
+                
                 
                 #set_eye_areas
                 #check for eye matches
@@ -102,8 +106,9 @@ class BlinkDetector():
 
                 cv2.rectangle(cur_img, (self.nose.l, self.nose.t),
                               (self.nose.r, self.nose.b), (255,0,0), 2)
+                cv2.rectangle(cur_img, (self.left.l, self.left.t),
+                              (self.left.r, self.left.b), (0,0,0), 2)
 
-                
                 #display_img = cv2.resize(cur_img, (0,0), fx=0.7, fy=0.7)
                 #xpos = self.screen_width - int(display_img.shape[0]*1.5)
                 #ypos = self.screen_height/3  - display_img.shape[1]/2
@@ -131,7 +136,7 @@ class BlinkDetector():
         pub.sendMessage("SwitchInput", msg="ready to close")
 
     def SetRotation(self, image):
-        angles = [10, 5, 0, -5, -10]
+        angles = [5, 0, -5]
         angles = [i + self.rotation for i in angles]
         self.nose.ExpandArea(0.4)
         max_val = 0.75
@@ -155,7 +160,55 @@ class BlinkDetector():
         self.rotation = max_ang
         return True
 
+    def SetEyeRegions(self):
+        expand = 0.3
+        width = self.nose.r - self.nose.l
+        left_shape = self.left.norm.shape[:2]
+        l_top = int(self.nose.t - left_shape[0]*0.5 - width*expand)
+        l_bot = int(self.nose.t + left_shape[0]*0.5 + width*expand)
+        l_left = int(self.nose.l - left_shape[1] - width*expand)
+        l_right = int(self.nose.l + width*expand)
+        self.left.SetArea([l_left, l_top, l_right, l_bot])
+        right_shape = self.right.norm.shape[:2]
+        r_top = int(self.nose.t - right_shape[0]*0.5 - width*expand)
+        r_bot = int(self.nose.t + right_shape[0]*0.5 + width*expand)
+        r_left = int(self.nose.r - width*expand)
+        r_right = int(self.nose.r + right_shape[1] + width*expand)
+        self.right.SetArea([r_left, r_top, r_right, r_bot])
+
+    def CheckForBlink(self, cur_img):
+        left_img = self.left.ImageSection(cur_img)
+        l_blink_val, _ = self.Match(left_img, self.left.special)
+        l_open_val, l_open_loc = self.Match(left_img, self.left.norm)
+        right_img = self.right.ImageSection(cur_img)
+        r_blink_val, _ = self.Match(right_img, self.right.special)
+        r_open_val, r_open_loc = self.Match(right_img, self.right.norm)
+        if(l_blink_val + r_blink_val - self.error_correction*2 >
+           l_open_val + r_open_val and l_blink_val > self.match_threshold
+           and r_blink_val > self.match_threshold):
+                #blinks matched better than open eyes and were above a threshold
+                return True
+        elif(l_open_val > self.match_threshold and
+             r_open_val > self.match_threshold):
+                #open eyes were found
+                left_area = self.left.GetArea()
+                self.left.SetAreaOffset(l_open_loc, self.left.norm.shape,
+                                        left_area)
+                right_area = self.right.GetArea()
+                self.right.SetAreaOffset(r_open_loc, self.right.norm.shape,
+                                         right_area)
+                                        
+        else:
+            #no good match was found
+            self.left.SetArea(None)
+            self.right.SetArea(None)
+        return False
         
+
+    def Match(self, big_img, small_img):
+        matches = cv2.matchTemplate(big_img, small_img, cv2.TM_CCOEFF_NORMED)
+        _, val, _, loc = cv2.minMaxLoc(matches)
+        return val, loc
             
         
 
@@ -192,29 +245,29 @@ class BlinkDetector():
         return [[x - 10, eyes_top - 10, width + 10, eyes_bottom + 10]]
 
     #not currently used
-    def CheckForBlink(self, search_image):
-        method = eval(self.COMP_METHOD)
-        shut_res = cv2.matchTemplate(search_image,self.shut_eyes,method)
-        min_shut_val, max_shut_val, min_shut_loc, max_shut_loc = \
-              cv2.minMaxLoc(shut_res)
-        open_res = cv2.matchTemplate(search_image,self.open_eyes,method)
-        min_open_val, max_open_val, min_open_loc, max_open_loc = \
-              cv2.minMaxLoc(open_res)
-        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
-            if min_shut_val < min_open_val:
-                blink_pos = min_shut_loc
-            else:
-                blink_pos = None
-        else:
-            if self.test:
-                self.close_vals.append(max_shut_val)
-                self.open_vals.append(max_open_val)
-            if(max_shut_val - self.blink_correction > max_open_val and
-               max_shut_val > self.blink_threshold):
-                blink_pos = max_shut_loc
-            else:
-                blink_pos = None
-        return blink_pos
+##    def CheckForBlink(self, search_image):
+##        method = eval(self.COMP_METHOD)
+##        shut_res = cv2.matchTemplate(search_image,self.shut_eyes,method)
+##        min_shut_val, max_shut_val, min_shut_loc, max_shut_loc = \
+##              cv2.minMaxLoc(shut_res)
+##        open_res = cv2.matchTemplate(search_image,self.open_eyes,method)
+##        min_open_val, max_open_val, min_open_loc, max_open_loc = \
+##              cv2.minMaxLoc(open_res)
+##        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+##            if min_shut_val < min_open_val:
+##                blink_pos = min_shut_loc
+##            else:
+##                blink_pos = None
+##        else:
+##            if self.test:
+##                self.close_vals.append(max_shut_val)
+##                self.open_vals.append(max_open_val)
+##            if(max_shut_val - self.blink_correction > max_open_val and
+##               max_shut_val > self.blink_threshold):
+##                blink_pos = max_shut_loc
+##            else:
+##                blink_pos = None
+##        return blink_pos
 
     #not currently used
     def BlinkFound(self, pos, img, blink_pos):
