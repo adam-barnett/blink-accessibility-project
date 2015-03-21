@@ -1,6 +1,6 @@
 welcome:Welcome to blink-able. This Procedure will initialise the system.
 find rotation:Please try to keep still throughout this process and look at the screen.  Currently the system is finding your face.
-capture eyes:Now please blink once quickly so that your eyes can be captured.
+capture eyes:Now please blink several times so that your eyes can be captured.
 finished:Success, your eyes have been captured.
 no blink:The system did not detect a clear blink. Please blink again now.
 no rotation:The system was not able to find a face in the camera, check the lighting and positioning. The system will try again in 30 seconds.
