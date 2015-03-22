@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from wx.lib.pubsub import pub
 from Box import Box
+import time
 
 """
 The opencv functions used during the initialisation to capture the base images
@@ -31,7 +32,7 @@ class Capturer():
 
 
     def Display(self):
-        iter_since_diff = 0
+        time_of_diff = None
         while True and not self.terminate:
             ret, img = self.cam.read()
             if ret:
@@ -62,16 +63,15 @@ class Capturer():
                                             self.face_box.b - self.face_box.t)
                         if len(eyes) == 2:
                             self.StoreEyes(eyes, cur_img)
+                            time_of_diff = time.time()
                         elif len(eyes) == 0:
                             if len(self.diff_eyes_left) > 0:
-                                if iter_since_diff > 10:
+                                if time.time() - time_of_diff > 0.500:
                                     cv2.imshow('open', cur_img)
                                     self.SaveImages(cur_img)
                                     self.capture_eyes_count = -2
                                     pub.sendMessage("InitMsg",
                                                     msg="eyes saved")
-                                else:
-                                    iter_since_diff += 1
                         self.prev_img = cur_img
                     self.capture_eyes_count += 1
                     if self.capture_eyes_count > 250:
