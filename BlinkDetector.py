@@ -46,7 +46,7 @@ class BlinkDetector():
             self.left = ImageStore(cv2.imread('left_open.png', 0),
                                    cv2.imread('left_closed.png', 0))
             self.right = ImageStore(cv2.imread('right_open.png', 0),
-                                    cv2.imread('right_open.png', 0))
+                                    cv2.imread('right_closed.png', 0))
             self.nose = ImageStore(cv2.imread('nose.png', 0))
 
             expected_info = ['scale', 'rotation', 'nose_pos']
