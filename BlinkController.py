@@ -22,7 +22,8 @@ class BlinkControllerFrame(wx.Frame):
         self.mouse_cont = None
         pub.subscribe(self.SwitchInput, ("SwitchInput"))
         pub.subscribe(self.InitManager, ("InitToMain"))
-        self.blink_started = None
+        self.blink_time = None
+        self.blink_recognised = False
 
         self.initialiser = InitialisationControl.InitialisationControl()
         #pub.sendMessage("InitToMain", msg="initialisation_finished")
@@ -68,16 +69,20 @@ class BlinkControllerFrame(wx.Frame):
                 self.CloseWindow()
         
     def SwitchInput(self, msg):
+        print msg
         if msg == "ready to close":
             #the blink detector is ready to close
             self.CloseWindow()
         elif msg == "shut":
-            current_blink = time.time()
-            if self.blink_started is None:
-                self.blink_started = current_blink
-            elif current_blink - self.blink_started > 0.160:
-                #blink detected
-                self.blink_started = None
+            current_time = time.time()
+            if self.blink_time is None:
+                self.blink_time = current_time
+            elif(current_time - self.blink_time > 0.160 and
+                 self.blink_recognised == False):
+                #new blink detected
+                print 'blink detected'
+                self.blink_time = None
+                self.blink_recognised = True
                 command = self.mouse_ui.ClickInput()
                 if command is not None:
                     self.mouse_actions[command]()
@@ -87,7 +92,8 @@ class BlinkControllerFrame(wx.Frame):
                         self.SetFocus()
         elif msg == "open":
             #eyes are open
-            self.blink_started = None
+            self.blink_time = None
+            self.blink_recognised = False
 
     def CloseWindow(self):
         if getattr(self, 'watcher', None):
