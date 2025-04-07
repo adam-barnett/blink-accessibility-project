@@ -21,6 +21,7 @@ The commands are used to either target a point on the screen or to select a type
 
 An example of all of the part of this process can be found in the youtube video linked at the top
 
+There are a large variety of tasks which remained when I moved on from this project which are tracked here https://bitbucket.org/adam-barnett/blink_accessibility_project/issues?status=new&status=open 
 
 
 ### How do I get set up? ###
