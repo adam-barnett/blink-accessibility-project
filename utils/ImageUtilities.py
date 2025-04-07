@@ -79,6 +79,9 @@ class ImageStore():
         if(self.t+y > shape[0] or self.b+y > shape[0]
            or self.l+x > shape[1] or self.r+x > shape[1]):
             return image
-        return image[self.t+y:self.b+y, self.l+x:self.r+x]
+        if((self.l+x < 0 and self.r+x < 0) or
+           (self.t+y and self.b+y < 0)):
+            return image
+        return image[max(self.t+y, 0):self.b+y, max(self.l+x,0):self.r+x]
         
         

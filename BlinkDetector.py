@@ -34,7 +34,7 @@ class BlinkDetector():
             pub.sendMessage("SwitchInput", msg="closing")
         else:   
             self.error_correction = 0.015
-            self.match_threshold = 0.7
+            self.match_threshold = 0.75
             self.screen_width = screen_width
             self.screen_height = screen_height
             self.eyes_open_msg_sent = True
@@ -101,7 +101,9 @@ class BlinkDetector():
                               (self.left.r, self.left.b), (0,0,0), 2)
                     cv2.rectangle(cur_img, (self.right.l, self.right.t),
                               (self.right.r, self.right.b), (0,0,0), 2)
-                    winsound.Beep(2500, 50)
+                    #the sound is useful for some debugging, but seems to
+                    #slow things down somewhat
+                    #winsound.Beep(2500, 50)
                     self.eyes_open_msg_sent = False
                     pub.sendMessage("SwitchInput", msg="shut")
                 else:
@@ -186,7 +188,11 @@ class BlinkDetector():
         r_open_val, r_open_loc = self.Match(right_img, self.right.norm)
         if(l_blink_val + r_blink_val - self.error_correction*2 >
            l_open_val + r_open_val and l_blink_val > self.match_threshold
-           and r_blink_val > self.match_threshold):
+           and r_blink_val > self.match_threshold and
+           l_blink_val - self.error_correction > l_open_val and r_blink_val - self.error_correction > l_open_val):
+                print('blink values - left: ' + str(l_blink_val) + ' right: ' + str(r_blink_val))
+                print('open values - left: ' + str(l_open_val) + ' right: ' + str(r_open_val))
+                print('')
                 #blinks matched better than open eyes and were above a threshold
                 return True
         elif(l_open_val > self.match_threshold and

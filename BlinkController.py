@@ -69,7 +69,6 @@ class BlinkControllerFrame(wx.Frame):
                 self.CloseWindow()
         
     def SwitchInput(self, msg):
-        print msg
         if msg == "ready to close":
             #the blink detector is ready to close
             self.CloseWindow()
